@@ -1,4 +1,5 @@
 using AmazingKanban.Client;
+using AmazingKanban.Client.Utility;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -13,6 +14,7 @@ builder.Services.AddHttpClient("AmazingKanban.ServerAPI", client => client.BaseA
 // Supply HttpClient instances that include access tokens when making requests to the server project
 builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("AmazingKanban.ServerAPI"));
 
-builder.Services.AddApiAuthorization();
+builder.Services.AddApiAuthorization()
+    .AddAccountClaimsPrincipalFactory<CustomUserFactory>();
 
 await builder.Build().RunAsync();

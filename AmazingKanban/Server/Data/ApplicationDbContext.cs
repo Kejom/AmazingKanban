@@ -1,4 +1,4 @@
-﻿using AmazingKanban.Server.Models;
+﻿using AmazingKanban.Shared.Models;
 using Duende.IdentityServer.EntityFramework.Options;
 using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
