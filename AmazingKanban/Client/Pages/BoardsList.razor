@@ -3,21 +3,8 @@
 @inject IBoardService BoardService
 @attribute [Authorize]
 <h3>BoardsList</h3>
+<button @onclick="@(() => ShowBoardForm())" class="btn btn-primary">Create Board</button>
 
-<EditForm Model="newBoard" OnValidSubmit="CreateBoard">
-    <DataAnnotationsValidator></DataAnnotationsValidator>
-        <div class=form-group>
-        <label for="name" class="required">Board Name</label>
-        <InputText id="name" @bind-Value="newBoard.Name" class="form-control"></InputText>
-        <ValidationMessage For="@(() => newBoard.Name)" />
-    </div>
-            <div class=form-group>
-        <label for="name" class="required">Board Description</label>
-        <InputTextArea id="name" @bind-Value="newBoard.Description" class="form-control"></InputTextArea>
-        <ValidationMessage For="@(() => newBoard.Description)" />
-    </div>
-    <button type="submit" class="btn btn-primary">Create</button>
-</EditForm>
 @if(BoardService.Boards.Count > 0)
 {
     <table class="table">
@@ -32,16 +19,20 @@
     </table>
 }
 @code {
-    Board newBoard = new Board();
+    [CascadingParameter] public IModalService Modal { get; set; }
 
-    async void CreateBoard()
-    {
-        await BoardService.AddBoard(newBoard);
-        StateHasChanged();
-    }
+
     protected override async Task OnInitializedAsync()
     {
+        BoardService.OnChange += StateHasChanged;
         await BoardService.LoadBoardsAsync();
     }
-
+    public void Dispose()
+    {
+        BoardService.OnChange -= StateHasChanged;
+    }
+    public void ShowBoardForm()
+    {
+        Modal.Show<BoardForm>("Create Board");
+    }
 }

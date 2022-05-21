@@ -1,4 +1,5 @@
 ﻿<CascadingAuthenticationState>
+    <CascadingBlazoredModal Animation="@ModalAnimation.FadeInOut(1)">
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
@@ -22,4 +23,5 @@
             </LayoutView>
         </NotFound>
     </Router>
+    </CascadingBlazoredModal>
 </CascadingAuthenticationState>
