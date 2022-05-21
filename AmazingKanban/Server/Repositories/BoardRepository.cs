@@ -1,4 +1,5 @@
 ﻿using AmazingKanban.Server.Data;
+using AmazingKanban.Shared;
 using AmazingKanban.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,7 +28,7 @@ namespace AmazingKanban.Server.Repositories
             return await _dbContext.Boards.FirstOrDefaultAsync(b => b.Id == id);
         }
 
-        public async Task<List<Board?>> GetByUserId(string userId)
+        public async Task<List<Board>> GetByUserId(string userId)
         {
             return await _dbContext.BoardUserAccesses.Where(a => a.UserId == userId).Include(a => a.Board).Select(a => a.Board).ToListAsync();
         }
@@ -36,6 +37,12 @@ namespace AmazingKanban.Server.Repositories
         {
             _dbContext.Boards.Add(board);
             await _dbContext.SaveChangesAsync();
+            await AddAccess(new BoardUserAccess
+            {
+                UserId = board.OwnerId,
+                BoardId = board.Id,
+                Role = BoardRoles.Admin
+            });           
         }
 
         public async Task UpdateBoard(Board board)
@@ -54,9 +61,9 @@ namespace AmazingKanban.Server.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<List<BoardUserAccess>> GetBoardsWithAccessLevelByUserId(string userId)
+        public async Task<List<BoardUserAccess>> GetAccessLevelByUserId(string userId)
         {
-            return await _dbContext.BoardUserAccesses.Where(a => a.UserId == userId).Include(a => a.Board).ToListAsync();
+            return await _dbContext.BoardUserAccesses.Where(a => a.UserId == userId).ToListAsync();
         }
 
         public async Task<List<BoardUserAccess>> GetAccessesByBoardId(int boardId)

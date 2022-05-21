@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32414.318
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazingKanban.Server", "AmazingKanban\Server\AmazingKanban.Server.csproj", "{C8BCC95F-3DD5-4CDE-A298-9BFE2BC88573}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmazingKanban.Server", "AmazingKanban\Server\AmazingKanban.Server.csproj", "{C8BCC95F-3DD5-4CDE-A298-9BFE2BC88573}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazingKanban.Client", "AmazingKanban\Client\AmazingKanban.Client.csproj", "{376B266B-A205-403F-81E0-F92446282DC7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmazingKanban.Client", "AmazingKanban\Client\AmazingKanban.Client.csproj", "{376B266B-A205-403F-81E0-F92446282DC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AmazingKanban.Shared", "AmazingKanban\Shared\AmazingKanban.Shared.csproj", "{B3120922-9199-42DE-9935-7D72312F454E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AmazingKanban.Shared", "AmazingKanban\Shared\AmazingKanban.Shared.csproj", "{B3120922-9199-42DE-9935-7D72312F454E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

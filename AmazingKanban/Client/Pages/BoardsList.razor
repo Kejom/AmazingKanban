@@ -1,0 +1,47 @@
+﻿@page "/boards"
+
+@inject IBoardService BoardService
+@attribute [Authorize]
+<h3>BoardsList</h3>
+
+<EditForm Model="newBoard" OnValidSubmit="CreateBoard">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+        <div class=form-group>
+        <label for="name" class="required">Board Name</label>
+        <InputText id="name" @bind-Value="newBoard.Name" class="form-control"></InputText>
+        <ValidationMessage For="@(() => newBoard.Name)" />
+    </div>
+            <div class=form-group>
+        <label for="name" class="required">Board Description</label>
+        <InputTextArea id="name" @bind-Value="newBoard.Description" class="form-control"></InputTextArea>
+        <ValidationMessage For="@(() => newBoard.Description)" />
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+</EditForm>
+@if(BoardService.Boards.Count > 0)
+{
+    <table class="table">
+    @foreach(var board in BoardService.Boards)
+    {
+        <tr>
+            <td>@board.Name</td>
+            <td>@board.Description</td>
+            <td>@board.OwnerId</td>
+        </tr>
+    }
+    </table>
+}
+@code {
+    Board newBoard = new Board();
+
+    async void CreateBoard()
+    {
+        await BoardService.AddBoard(newBoard);
+        StateHasChanged();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await BoardService.LoadBoardsAsync();
+    }
+
+}
