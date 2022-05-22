@@ -21,15 +21,19 @@ namespace AmazingKanban.Client.Services
 
         public async Task LoadBoardsAsync()
         {
-            var result = await _httpClient.GetFromJsonAsync<IList<Board>>("api/board/getBoards");
+            var result = await _httpClient.GetFromJsonAsync<IList<Board>>("api/boards");
 
             if (result is not null)
                 Boards = result;
         }
-
-        public async Task AddBoard(Board board)
+        public async Task<BoardVM?> GetBoardById(int id)
         {
-            var result = await _httpClient.PostAsJsonAsync("api/board/add", board);
+            return await _httpClient.GetFromJsonAsync<BoardVM>($"api/boards/{id}");
+        }
+
+        public async Task AddBoard(BoardVM boardVM)
+        {
+            var result = await _httpClient.PostAsJsonAsync("api/boards/add", boardVM);
 
             if(result.StatusCode != System.Net.HttpStatusCode.OK)
                 _toastService.ShowError(await result.Content.ReadAsStringAsync());
@@ -38,6 +42,16 @@ namespace AmazingKanban.Client.Services
             Boards.Add(addedBoard);
             BoardChanged();
             _toastService.ShowSuccess($"Board {addedBoard.Name} has been created.");
+        }
+
+        public async Task UpdateBoardAccesses(int boardId, List<BoardUserAccess> accesses)
+        {
+            var result = await _httpClient.PostAsJsonAsync($"api/boards/access/{boardId}", accesses);
+
+            if (result.StatusCode != System.Net.HttpStatusCode.OK)
+                _toastService.ShowError(await result.Content.ReadAsStringAsync());
+            else
+                _toastService.ShowSuccess("Accesses Updated");
         }
 
         void BoardChanged() => OnChange.Invoke();

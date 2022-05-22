@@ -1,0 +1,128 @@
+﻿@inject IUsersService UserService
+@inject IUserUtility UserUtility
+@inject IBoardService BoardService
+
+<div style="width:25em">
+    <div class="border p-3" style="width:90%;margin:auto">
+        <EditForm Model="Users" OnValidSubmit="UpdateUsers">
+        <BlazoredTypeahead SearchMethod="@TypeAhead"
+                           @bind-Value="@SelectedUser"
+                           placeholder="Search for user.."
+                           Debounce="500">
+            <SelectedTemplate Context="selectedContext">
+                @selectedContext.Email
+            </SelectedTemplate>
+            <ResultTemplate Context="resultContext">
+                @resultContext.Email
+            </ResultTemplate>
+            <NotFoundTemplate Context="notFoundContext">
+                No users found
+            </NotFoundTemplate>
+        </BlazoredTypeahead>
+        <hr />
+        <table class="table table-bordered table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th width="40%">
+                        User Email
+                    </th>
+                    <th width="40%">
+                        Access Level
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!String.IsNullOrEmpty(SelectedUser.Email))
+                {
+                    <tr>
+                        <td>@SelectedUser.Email</td>
+                        <td>
+                            <InputSelect @bind-Value="SelectedUser.BoardRole">
+                                @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
+                                {
+                                <option value="@role">@role</option>
+                                }
+                        </InputSelect>
+                    </td>
+                    <td>
+                        <div class="w-75 btn-group" role="group">
+                            <button class="btn btn-success" @onclick="AddUserToList"><span class="oi oi-plus"></span></button>
+                        </div>
+                    </td>
+                </tr>
+                }
+                @if (Users.Count > 0)
+                {
+                    @foreach (var user in Users)
+                    {
+                        <tr>
+                            <td>@user.Email</td>
+                            <td>
+                                <InputSelect @bind-Value="user.BoardRole" disabled="@IsDisabled(user)">
+                                    @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
+                                    {
+                                <option value="@role">@role</option>
+                                    }
+                        </InputSelect>
+                    </td>
+                    <td>
+                        <div class="w-75 btn-group" role="group">
+                            @if (!IsDisabled(user))
+                                    {
+                                        <button class="btn btn-danger" @onclick="()=> Users.Remove(user)"><span class="oi oi-delete"></span></button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+        <div style="display:flex; justify-content:center; margin:5px"><button type="submit" class="btn btn-primary">Save Changes</button></div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int BoardId { get; set; }
+    [Parameter] public List<UserVM> Users { get; set; }
+
+    UserVM SelectedUser = new UserVM();
+    string currentUserId = String.Empty;
+
+    async Task<IEnumerable<UserVM>> TypeAhead(string filter)
+    {
+        var users = await UserService.GetUsers(filter);
+        Console.WriteLine($"current user ID: {currentUserId}");
+        return users.Where(u => !Users.Exists(s => s.Id == u.Id) && u.Id != currentUserId).ToList();
+    }
+    async Task UpdateUsers()
+    {
+        var userAccesses = Users.Select(u => new BoardUserAccess
+            {
+                UserId = u.Id,
+                Role = u.BoardRole.Value,
+                BoardId = BoardId
+            }).ToList();
+        await BoardService.UpdateBoardAccesses(BoardId, userAccesses);
+        await ModalInstance.CloseAsync();
+    }
+    void AddUserToList()
+    {
+        SelectedUser.BoardRole = BoardRoles.User;
+        Users.Add(SelectedUser);
+        SelectedUser = new UserVM();
+    }
+
+    bool IsDisabled(UserVM user)
+    {
+        return user.Id == currentUserId;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentUserId = await UserUtility.GetCurrentUserId();
+    }
+}

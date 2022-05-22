@@ -14,6 +14,8 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddHttpClient("AmazingKanban.ServerAPI", client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 builder.Services.AddScoped<IBoardService, BoardService>();
+builder.Services.AddScoped<IUsersService, UsersService>();
+builder.Services.AddScoped<IUserUtility, UserUtility>();
 builder.Services.AddBlazoredModal();
 builder.Services.AddBlazoredToast();
 

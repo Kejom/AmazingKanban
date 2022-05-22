@@ -2,25 +2,66 @@
 
 @inject IBoardService BoardService
 @attribute [Authorize]
-<h3>BoardsList</h3>
-<button @onclick="@(() => ShowBoardForm())" class="btn btn-primary">Create Board</button>
 
-@if(BoardService.Boards.Count > 0)
-{
-    <table class="table">
-    @foreach(var board in BoardService.Boards)
+<div class="container p-3">
+    <div class="row pt-4">
+        <div class="col-6">
+            <h2 class="text-primary">Boards</h2>
+        </div>
+        <div class="col-6">
+            <button @onclick="@(() => ShowBoardForm())" class="btn btn-primary float-end" >Create New Board</button>
+        </div>
+    </div>
+    <br /><br />
+
+
+
+    @if (BoardService.Boards.Count > 0)
     {
-        <tr>
-            <td>@board.Name</td>
-            <td>@board.Description</td>
-            <td>@board.OwnerId</td>
-        </tr>
+            <div class="form-group">
+        <input class="form-control" type="text" placeholder="Filter..." @bind="Filter" @bind:event="oninput" />
+    </div>
+    <br/>
+        <table class="table table-bordered table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        Description
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var board in BoardService.Boards)
+            {
+                    if (!IsVisible(board))
+                        continue;
+                    <tr>
+                    <td width="30%">@board.Name</td>
+                    <td width="40%">@board.Description</td>
+                    <td width="30%" class="text-center">
+                        <div class="w-75 btn-group">
+                        <a class="btn btn-primary mx-2" href="@($"boards/{board.Id}")">
+                            Open
+                        </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
     }
-    </table>
-}
+    else{
+        <p>No Boards to display</p>
+    }
+</div>
 @code {
     [CascadingParameter] public IModalService Modal { get; set; }
 
+    public string? Filter { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -34,5 +75,18 @@
     public void ShowBoardForm()
     {
         Modal.Show<BoardForm>("Create Board");
+    }
+    public bool IsVisible(Board? board)
+    {
+        if (board is null)
+            return false;
+
+        if (string.IsNullOrEmpty(Filter))
+            return true;
+
+        if (board.Name.Contains(Filter, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
     }
 }

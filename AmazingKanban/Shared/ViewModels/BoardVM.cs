@@ -9,7 +9,7 @@ namespace AmazingKanban.Shared.ViewModels
 {
     public class BoardVM
     {
-        public Board? Board { get; set; }
-        public BoardRoles? AccessLevel { get; set; }
+        public Board Board { get; set; } = new Board();
+        public List<BoardUserAccess> UserAccesses { get; set; } = new List<BoardUserAccess>();
     }
 }
