@@ -15,10 +15,11 @@ namespace AmazingKanban.Shared.Models
         [Required]
         public string Title { get; set; } = String.Empty;
         public string Description { get; set; } = String.Empty;
-        [Range(1, 4)]
         public DateTime CreatedOn { get; set; }
-        public DateTime ClosedOn { get; set; }
+        public DateTime? UpdatedOn { get; set; } = null;
+        public DateTime? ClosedOn { get; set; } = null;
         public bool ShowOnBoard { get; set; }
+        [Range(1, 4)]
         public int Priority { get; set; } = 4;
         public KanbanTaskStates State { get; set; }
         public string CreatedById { get; set; } = String.Empty;

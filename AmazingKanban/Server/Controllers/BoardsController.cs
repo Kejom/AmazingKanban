@@ -91,12 +91,5 @@ namespace AmazingKanban.Server.Controllers
 
             return Ok();
         }
-
-        private BoardRoles? GetBoardAccessLevel(List<BoardUserAccess> accesses, int boardId)
-        {
-            var access = accesses.FirstOrDefault(b =>b.BoardId == boardId);
-
-            return access is null ? null : access.Role;
-        }
     }
 }

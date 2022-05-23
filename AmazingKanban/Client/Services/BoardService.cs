@@ -36,7 +36,10 @@ namespace AmazingKanban.Client.Services
             var result = await _httpClient.PostAsJsonAsync("api/boards/add", boardVM);
 
             if(result.StatusCode != System.Net.HttpStatusCode.OK)
+            {
                 _toastService.ShowError(await result.Content.ReadAsStringAsync());
+                return;
+            }             
 
             var addedBoard = await result.Content.ReadFromJsonAsync<Board>();
             Boards.Add(addedBoard);
