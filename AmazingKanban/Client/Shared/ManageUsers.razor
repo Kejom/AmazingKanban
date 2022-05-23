@@ -10,10 +10,10 @@
                            placeholder="Search for user.."
                            Debounce="500">
             <SelectedTemplate Context="selectedContext">
-                @selectedContext.Email
+                @selectedContext.User.Email
             </SelectedTemplate>
             <ResultTemplate Context="resultContext">
-                @resultContext.Email
+                @resultContext.User.Email
             </ResultTemplate>
             <NotFoundTemplate Context="notFoundContext">
                 No users found
@@ -33,10 +33,10 @@
                 </tr>
             </thead>
             <tbody>
-                @if (!String.IsNullOrEmpty(SelectedUser.Email))
+                @if (!String.IsNullOrEmpty(SelectedUser.User.Email))
                 {
                     <tr>
-                        <td>@SelectedUser.Email</td>
+                        <td>@SelectedUser.User.Email</td>
                         <td>
                             <InputSelect @bind-Value="SelectedUser.BoardRole">
                                 @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
@@ -57,7 +57,7 @@
                     @foreach (var user in Users)
                     {
                         <tr>
-                            <td>@user.Email</td>
+                            <td>@user.User.Email</td>
                             <td>
                                 <InputSelect @bind-Value="user.BoardRole" disabled="@IsDisabled(user)">
                                     @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
@@ -87,22 +87,27 @@
 @code {
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int BoardId { get; set; }
-    [Parameter] public List<UserVM> Users { get; set; }
+    [Parameter] public List<BoardUserVM> Users { get; set; }
 
-    UserVM SelectedUser = new UserVM();
+    BoardUserVM SelectedUser = new BoardUserVM();
     string currentUserId = String.Empty;
 
-    async Task<IEnumerable<UserVM>> TypeAhead(string filter)
+    async Task<IEnumerable<BoardUserVM>> TypeAhead(string filter)
     {
         var users = await UserService.GetUsers(filter);
+        var usersVM = users.Select(u => new BoardUserVM
+            {
+                User = u,
+                BoardRole = BoardRoles.User
+            });
         Console.WriteLine($"current user ID: {currentUserId}");
-        return users.Where(u => !Users.Exists(s => s.Id == u.Id) && u.Id != currentUserId).ToList();
+        return usersVM.Where(u => !Users.Exists(s => s.User.Id == u.User.Id) && u.User.Id != currentUserId).ToList();
     }
     async Task UpdateUsers()
     {
         var userAccesses = Users.Select(u => new BoardUserAccess
             {
-                UserId = u.Id,
+                UserId = u.User.Id,
                 Role = u.BoardRole.Value,
                 BoardId = BoardId
             }).ToList();
@@ -113,12 +118,12 @@
     {
         SelectedUser.BoardRole = BoardRoles.User;
         Users.Add(SelectedUser);
-        SelectedUser = new UserVM();
+        SelectedUser = new BoardUserVM();
     }
 
-    bool IsDisabled(UserVM user)
+    bool IsDisabled(BoardUserVM user)
     {
-        return user.Id == currentUserId;
+        return user.User.Id == currentUserId;
     }
 
     protected override async Task OnInitializedAsync()

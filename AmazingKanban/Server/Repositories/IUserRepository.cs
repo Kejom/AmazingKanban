@@ -1,10 +1,11 @@
-﻿using AmazingKanban.Shared.ViewModels;
+﻿using AmazingKanban.Shared.Models;
+using AmazingKanban.Shared.ViewModels;
 
 namespace AmazingKanban.Server.Repositories
 {
     public interface IUserRepository
     {
-        Task<List<UserVM>> GetUsersAsVM(string filter = "");
-        Task<List<UserVM>> GetUsersAsVmByBoardId(int boardId);
+        Task<List<ApplicationUser>> GetUsers(string filter = "");
+        Task<List<BoardUserAccess>> GetUsersByBoardId(int boardId);
     }
 }

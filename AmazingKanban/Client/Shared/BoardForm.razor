@@ -23,10 +23,10 @@
                                    placeholder="Search for user.."
                                    Debounce="500">
                     <SelectedTemplate Context="selectedContext">
-                        @selectedContext.Email
+                        @selectedContext.User.Email
                     </SelectedTemplate>
                     <ResultTemplate Context="resultContext">
-                        @resultContext.Email
+                        @resultContext.User.Email
                     </ResultTemplate>
                     <NotFoundTemplate Context="notFoundContext">
                         No users found
@@ -46,10 +46,10 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (!String.IsNullOrEmpty(SelectedUser.Email))
+                        @if (!String.IsNullOrEmpty(SelectedUser.User.Email))
                         {
                             <tr>
-                                <td>@SelectedUser.Email</td>
+                                <td>@SelectedUser.User.Email</td>
                                 <td>
                                     <InputSelect @bind-Value="SelectedUser.BoardRole">
                                         @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
@@ -70,7 +70,7 @@
                             @foreach (var user in SelectedUsers)
                             {
                                 <tr>
-                                    <td>@user.Email</td>
+                                    <td>@user.User.Email</td>
                                     <td>
                                         <InputSelect @bind-Value="user.BoardRole">
                                             @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
@@ -99,8 +99,8 @@
 @code {
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     BoardVM newBoard = new BoardVM();
-    UserVM SelectedUser = new UserVM();
-    List<UserVM> SelectedUsers = new List<UserVM>();
+    BoardUserVM SelectedUser = new BoardUserVM();
+    List<BoardUserVM> SelectedUsers = new List<BoardUserVM>();
 
     async Task CreateBoard()
     {
@@ -109,26 +109,24 @@
         await ModalInstance.CloseAsync();
     }
 
-    async Task TestUsers()
-    {
-        var users = await UserService.GetUsers("Admin");
-        foreach (var user in users)
-        {
-            Console.WriteLine(user.Email);
-        }
-    }
-    async Task<IEnumerable<UserVM>> TypeAhead(string filter)
+    async Task<IEnumerable<BoardUserVM>> TypeAhead(string filter)
     {
         var users = await UserService.GetUsers(filter);
+        var usersVM = users.Select(u => new BoardUserVM
+            {
+                User = u,
+                BoardRole = BoardRoles.User
+
+            });
         var currentUserId = await UserUtility.GetCurrentUserId();
         Console.WriteLine($"current user ID: {currentUserId}");
-        return users.Where(u => !SelectedUsers.Exists(s => s.Id == u.Id) && u.Id != currentUserId).ToList();
+        return usersVM.Where(u => !SelectedUsers.Exists(s => s.User.Id == u.User.Id) && u.User.Id != currentUserId).ToList();
     }
     void AddUserToList()
     {
         SelectedUser.BoardRole = BoardRoles.User;
         SelectedUsers.Add(SelectedUser);
-        SelectedUser = new UserVM();
+        SelectedUser = new BoardUserVM();
     }
 
     void AddSelectedUsersToNewBoard()
@@ -138,7 +136,7 @@
             newBoard.UserAccesses.Add(
                 new BoardUserAccess
                     {
-                        UserId = user.Id,
+                        UserId = user.User.Id,
                         Role = user.BoardRole.Value
                     }
             );
