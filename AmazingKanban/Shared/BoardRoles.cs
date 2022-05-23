@@ -10,6 +10,7 @@ namespace AmazingKanban.Shared
     {
         User,
         Developer,
-        Admin
+        Admin,
+        NoAccess
     }
 }

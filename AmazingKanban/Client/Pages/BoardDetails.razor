@@ -1,6 +1,8 @@
 ﻿@page "/boards/{id}"
 @inject IBoardService BoardService
 @inject IUsersService UsersService
+@inject IUserUtility UserUtility
+@inject NavigationManager NavigationManager
 
 @attribute [Authorize]
 <div class="container p-3">
@@ -14,10 +16,16 @@
                 <button class="btn btn-primary" style="width:100%"><span class="oi oi-task"></span> Create Task</button>
             </div>
             <div class="col-3 text-right">
-                <button class="btn btn-primary" style="width:100%"><span class="oi oi-pencil"></span> Edit Board</button>
+                @if(UserRole == BoardRoles.Admin)
+                {
+                    <button class="btn btn-primary" style="width:100%"><span class="oi oi-pencil"></span> Edit Board</button>
+                }                
             </div>
             <div class="col-3 text-right">
-                <button class="btn btn-primary" style="width:100%" @onclick="ShowManageUsersModal"><span class="oi oi-people"></span> Manage Users</button>
+                @if(UserRole == BoardRoles.Admin)
+                {
+                    <button class="btn btn-primary" style="width:100%" @onclick="ShowManageUsersModal"><span class="oi oi-people"></span> Manage Users</button>
+                }               
             </div>
         </div>
         <br />
@@ -41,14 +49,18 @@
 
     public List<BoardUserVM> Users { get; set; } = new List<BoardUserVM>();
 
+    public BoardRoles UserRole { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         if (Id is not null)
         {
             Board = await BoardService.GetBoardById(Int32.Parse(Id));
             Users = await UsersService.GetByBoardId(Int32.Parse(Id));
+            UserRole = await GetCurrentUserAccess();
         }
     }
+
     void ShowManageUsersModal()
     {
         var parameters = new ModalParameters();
@@ -56,6 +68,22 @@
         parameters.Add("Users", Users);
 
         Modal.Show<ManageUsers>("Manage Users", parameters);
+    }
+
+    async Task<BoardRoles> GetCurrentUserAccess()
+    {
+        var isAdmin = await UserUtility.IsAdmin();
+
+        if (isAdmin)
+            return BoardRoles.Admin;
+
+        var userId = await UserUtility.GetCurrentUserId();
+        var user = Users.FirstOrDefault(u => u.User.Id == userId);
+
+        if (user is not null)
+            return user.BoardRole.Value;
+
+        return BoardRoles.NoAccess;
     }
 
 

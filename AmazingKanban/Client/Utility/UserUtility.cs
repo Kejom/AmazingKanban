@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
+﻿using AmazingKanban.Shared;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace AmazingKanban.Client.Utility
 {
@@ -15,6 +16,15 @@ namespace AmazingKanban.Client.Utility
             var authState = await _authProvider.GetAuthenticationStateAsync();
             var user = authState.User;
             return user.FindFirst(c => c.Type == "sub").Value;
+            
+        }
+
+        public async Task<bool> IsAdmin()
+        {
+            var authState = await _authProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var adminClaim = user.Claims.FirstOrDefault(c => c.Value == UserRoles.Admin.ToString());
+            return adminClaim is not null;
         }
     }
 }
