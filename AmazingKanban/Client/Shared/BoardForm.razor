@@ -126,6 +126,7 @@
     }
     void AddUserToList()
     {
+        SelectedUser.BoardRole = BoardRoles.User;
         SelectedUsers.Add(SelectedUser);
         SelectedUser = new UserVM();
     }
