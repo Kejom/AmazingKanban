@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 
 namespace AmazingKanban.Shared.Models
 {
-    public class KanbanTask
+    public class KanbanTask<T>
     {
         [Key]
         public int Id { get; set; }
+        public int BoardId { get; set; }
         [Required]
         public string Title { get; set; } = String.Empty;
         public string Description { get; set; } = String.Empty;
@@ -24,13 +25,13 @@ namespace AmazingKanban.Shared.Models
         public KanbanTaskStates State { get; set; }
         public string CreatedById { get; set; } = String.Empty;
         [ForeignKey("CreatedById")]
-        public ApplicationUser? CreatedBy { get; set; }
+        public T? CreatedBy { get; set; }
         public string AssignedToId { get; set; } = String.Empty;
         [ForeignKey("AssignedToId")]
-        public ApplicationUser? AssignedTo { get; set; }
+        public T? AssignedTo { get; set; }
         public string ValidatorId { get; set; } = String.Empty;
         [ForeignKey("ValidatorId")]
-        public ApplicationUser? Validator { get; set; }
+        public T? Validator { get; set; }
 
     }
 }

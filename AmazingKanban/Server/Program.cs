@@ -38,6 +38,8 @@ builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddTransient<IBoardRepository, BoardRepository>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IUserLiteFactory, UserLiteFactory>();
+builder.Services.AddTransient<IKanbanTaskRepository, KanbanTaskRepository>();
+builder.Services.AddTransient<ITaskCommentRepository, TaskCommentRepository>();
 
 var app = builder.Build();
 
