@@ -1,4 +1,5 @@
 ﻿using AmazingKanban.Server.Repositories;
+using AmazingKanban.Shared;
 using AmazingKanban.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -9,16 +10,17 @@ namespace AmazingKanban.Server.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class TaskController : ControllerBase
+    public class TasksController : ControllerBase
     {
         private readonly IKanbanTaskRepository _taskRepository;
 
-        public TaskController(IKanbanTaskRepository taskRepository)
+        public TasksController(IKanbanTaskRepository taskRepository)
         {
             _taskRepository = taskRepository;
         }
 
         [HttpGet]
+        [Authorize(Roles = nameof(UserRoles.Admin))]
         public async Task<IActionResult> GetAll()
         {
             try
