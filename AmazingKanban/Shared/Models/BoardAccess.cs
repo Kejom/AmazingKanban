@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AmazingKanban.Shared.Models
 {
-    public class BoardUserAccess
+    public class BoardAccess<T>
     {
         [Key]
         public int Id { get; set; }
@@ -17,7 +17,7 @@ namespace AmazingKanban.Shared.Models
         public Board? Board { get; set; }
         public string? UserId { get; set; }
         [ForeignKey("UserId")]
-        public ApplicationUser? User { get; set; }
+        public T? User { get; set; }
         public BoardRoles Role { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using AmazingKanban.Server.Repositories;
+﻿using AmazingKanban.Server.Factories;
+using AmazingKanban.Server.Repositories;
 using AmazingKanban.Shared;
 using AmazingKanban.Shared.Models;
 using AmazingKanban.Shared.ViewModels;
@@ -15,81 +16,74 @@ namespace AmazingKanban.Server.Controllers
     public class BoardsController : ControllerBase
     {
         private readonly IBoardRepository _boardRepository;
-        public BoardsController(IBoardRepository boardRepository)
+        private readonly IBoardAccessRepository _boardAccessRepository;
+        private readonly IModelFactory _modelFactory;
+        public BoardsController(IBoardRepository boardRepository, IBoardAccessRepository boardAccessRepository, IModelFactory modelFactory)
         {
             _boardRepository = boardRepository;
+            _boardAccessRepository = boardAccessRepository;
+            _modelFactory = modelFactory;
         }
 
-        [HttpGet()]
+        [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var boards = new List<Board>();
+            try
+            {
+                var boards = new List<Board>();
 
-            var isAdmin = User.IsInRole(UserRoles.Admin.ToString());
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var isAdmin = User.IsInRole(UserRoles.Admin.ToString());
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (isAdmin)
-                boards = await _boardRepository.GetAll();
-            else
-                boards = await _boardRepository.GetByUserId(userId);
+                if (isAdmin)
+                    boards = await _boardRepository.GetAll();
+                else
+                    boards = await _boardRepository.GetByUserId(userId);
 
- 
+                return Ok(boards);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
 
-            return Ok(boards);
   
         }
         [HttpGet("{boardId}")]
         public async Task<IActionResult> GetById(int boardId)
         {
-            var board = await _boardRepository.GetById(boardId);
-
-            if(board is null) return NotFound();
-
-            var acccesses = await _boardRepository.GetAccessesByBoardId(boardId);
-
-            var boardVM = new BoardVM
+            try
             {
-                Board = board,
-                UserAccesses = acccesses
-            };
+                var board = await _boardRepository.GetById(boardId);
+                return Ok(board);
+            }
+            catch(ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
 
-            return Ok(boardVM);
         }
 
-        [HttpPost("add")]
-        public async Task<IActionResult> Add(BoardVM boardVM)
+        [HttpPost]
+        public async Task<IActionResult> Add(BoardSubmitVM submitVM)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            boardVM.Board.OwnerId = userId;
-            await _boardRepository.AddBoard(boardVM.Board);
+            submitVM.Board.OwnerId = userId;
+            await _boardRepository.AddBoard(submitVM.Board);
 
-            foreach (var userAccess in boardVM.UserAccesses)
+            foreach (var userAccess in submitVM.UserAccesses)
             {
-                userAccess.BoardId = boardVM.Board.Id;
-                await _boardRepository.AddAccess(userAccess);
+                var accessToAdd = _modelFactory.Convert(userAccess);
+                accessToAdd.BoardId = submitVM.Board.Id;
+                await _boardAccessRepository.Add(accessToAdd);
             }
-            return Ok(boardVM.Board);
-        }
-        [HttpPost("access/{boardId}")]
-        public async Task<IActionResult> UpdateBoardAccesses(int boardId, List<BoardUserAccess> accesses)
-        {
-            var currentAccesses = await _boardRepository.GetAccessesByBoardId(boardId);
-            var accessesToAdd = accesses.Except(currentAccesses);
-            var accessesToRemove = currentAccesses.Except(accesses);
-            var accessesToUpdate = accesses.Intersect(currentAccesses);
-
-            foreach (var access in accessesToAdd)
-                await _boardRepository.AddAccess(access);
-
-            foreach (var access in accessesToRemove)
-                await _boardRepository.DeleteAccess(access);
-
-            foreach(var access in accessesToUpdate)
-                await _boardRepository.UpdateAccess(access);
-
-            return Ok();
+            return Ok(submitVM.Board);
         }
     }
 }

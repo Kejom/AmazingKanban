@@ -26,12 +26,12 @@ namespace AmazingKanban.Client.Services
             if (result is not null)
                 Boards = result;
         }
-        public async Task<BoardVM?> GetBoardById(int id)
+        public async Task<BoardSubmitVM?> GetBoardById(int id)
         {
-            return await _httpClient.GetFromJsonAsync<BoardVM>($"api/boards/{id}");
+            return await _httpClient.GetFromJsonAsync<BoardSubmitVM>($"api/boards/{id}");
         }
 
-        public async Task AddBoard(BoardVM boardVM)
+        public async Task AddBoard(BoardSubmitVM boardVM)
         {
             var result = await _httpClient.PostAsJsonAsync("api/boards/add", boardVM);
 
@@ -47,7 +47,7 @@ namespace AmazingKanban.Client.Services
             _toastService.ShowSuccess($"Board {addedBoard.Name} has been created.");
         }
 
-        public async Task UpdateBoardAccesses(int boardId, List<BoardUserAccess> accesses)
+        public async Task UpdateBoardAccesses(int boardId, List<BoardAccess<UserLite>> accesses)
         {
             var result = await _httpClient.PostAsJsonAsync($"api/boards/access/{boardId}", accesses);
 

@@ -1,4 +1,5 @@
-﻿using AmazingKanban.Server.Repositories;
+﻿using AmazingKanban.Server.Factories;
+using AmazingKanban.Server.Repositories;
 using AmazingKanban.Shared.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,12 @@ namespace AmazingKanban.Server.Controllers
     public class CommentsController : ControllerBase
     {
         private readonly ITaskCommentRepository _commentRepository;
+        private readonly IModelFactory _modelFactory;
 
-        public CommentsController(ITaskCommentRepository commentRepository)
+        public CommentsController(ITaskCommentRepository commentRepository, IModelFactory modelFactory)
         {
             _commentRepository = commentRepository;
+            _modelFactory = modelFactory;
         }
 
         [HttpGet]
@@ -22,7 +25,7 @@ namespace AmazingKanban.Server.Controllers
             try
             {
                 var comments = await _commentRepository.GetAll();
-                var result = comments.Select(c => Convert(c)).ToList();
+                var result = comments.Select(c => _modelFactory.Convert(c)).ToList();
                 return Ok(result);
             }
             catch (Exception e)
@@ -37,7 +40,7 @@ namespace AmazingKanban.Server.Controllers
             try
             {
                 var comment = await _commentRepository.GetById(commentId);
-                var result = Convert(comment);
+                var result = _modelFactory.Convert(comment);
                 return Ok(result);
             }
             catch(ArgumentException e)
@@ -58,7 +61,7 @@ namespace AmazingKanban.Server.Controllers
 
             try
             {
-                var commentToAdd = Convert(comment);
+                var commentToAdd = _modelFactory.Convert(comment);
                 await _commentRepository.Add(commentToAdd);
                 return Ok(commentToAdd.Id);
             }
@@ -76,7 +79,7 @@ namespace AmazingKanban.Server.Controllers
 
             try
             {
-                var commentToUpdate = Convert(comment);
+                var commentToUpdate = _modelFactory.Convert(comment);
                 await _commentRepository.Update(commentToUpdate);
                 return Ok();
             }
@@ -96,44 +99,13 @@ namespace AmazingKanban.Server.Controllers
             try
             {
                 var comments = await _commentRepository.GetByTaskId(taskId);
-                var result = comments.Select(c => Convert(c)).ToList();
+                var result = comments.Select(c => _modelFactory.Convert(c)).ToList();
                 return Ok(result);
             }
             catch (Exception e)
             {
                 return StatusCode(500, e.Message);
             }
-        }
-        
-        private TaskComment<UserLite> Convert(TaskComment<ApplicationUser> comment)
-        {
-            return new TaskComment<UserLite>
-            {
-                Id = comment.Id,
-                BoardId = comment.BoardId,
-                TaskId = comment.TaskId,
-                CreatedOn = comment.CreatedOn,
-                UpdatedOn = comment.UpdatedOn,
-                CreatedById = comment.CreatedById,
-                CreatedBy = comment.CreatedBy is null ? null : comment.CreatedBy.ConvertToUserLite(),
-                CommentText = comment.CommentText,
-                ShowOnBoard = comment.ShowOnBoard
-            };
-        }
-
-        private TaskComment<ApplicationUser> Convert(TaskComment<UserLite> comment)
-        {
-            return new TaskComment<ApplicationUser>
-            {
-                Id = comment.Id,
-                BoardId = comment.BoardId,
-                TaskId = comment.TaskId,
-                CreatedOn = comment.CreatedOn,
-                UpdatedOn = comment.UpdatedOn,
-                CreatedById = comment.CreatedById,
-                CommentText = comment.CommentText,
-                ShowOnBoard = comment.ShowOnBoard
-            };
-        }
+        } 
     }
 }

@@ -107,7 +107,7 @@
     }
     async Task UpdateUsers()
     {
-        var userAccesses = Users.Select(u => new BoardUserAccess
+        var userAccesses = Users.Select(u => new BoardAccess<UserLite>
             {
                 UserId = u.User.Id,
                 Role = u.BoardRole.Value,

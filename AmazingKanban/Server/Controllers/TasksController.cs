@@ -1,4 +1,5 @@
-﻿using AmazingKanban.Server.Repositories;
+﻿using AmazingKanban.Server.Factories;
+using AmazingKanban.Server.Repositories;
 using AmazingKanban.Shared;
 using AmazingKanban.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -13,6 +14,7 @@ namespace AmazingKanban.Server.Controllers
     public class TasksController : ControllerBase
     {
         private readonly IKanbanTaskRepository _taskRepository;
+        private readonly IModelFactory _modelFactory;
 
         public TasksController(IKanbanTaskRepository taskRepository)
         {
@@ -26,7 +28,7 @@ namespace AmazingKanban.Server.Controllers
             try
             {
                 var tasks = await _taskRepository.GetAll();
-                var result = tasks.Select(t => ConvertTask(t)).ToList();
+                var result = tasks.Select(t => _modelFactory.Convert(t)).ToList();
                 return Ok(result);
             }
             catch (Exception e)
@@ -42,7 +44,7 @@ namespace AmazingKanban.Server.Controllers
             try
             {
                 var task = await _taskRepository.GetById(taskId);
-                var result = ConvertTask(task);
+                var result = _modelFactory.Convert(task);
                 return Ok(result);
             }
             catch(ArgumentException e)
@@ -62,7 +64,7 @@ namespace AmazingKanban.Server.Controllers
                 return BadRequest(ModelState);
             try
             {
-                var taskToAdd = ConvertTask(kanbanTask);
+                var taskToAdd = _modelFactory.Convert(kanbanTask);
                 await _taskRepository.Add(taskToAdd);
                 return Ok(taskToAdd.Id);
             }
@@ -79,7 +81,7 @@ namespace AmazingKanban.Server.Controllers
                 return BadRequest(ModelState);
             try
             {
-                var taskToUpdate = ConvertTask(kanbanTask);
+                var taskToUpdate = _modelFactory.Convert(kanbanTask);
                 await _taskRepository.Update(taskToUpdate);
                 return Ok();
             }
@@ -99,56 +101,13 @@ namespace AmazingKanban.Server.Controllers
             try
             {
                 var tasks = await _taskRepository.GetByBoardId(boardId);
-                var result = tasks.Select(t => ConvertTask(t)).ToList();
+                var result = tasks.Select(t => _modelFactory.Convert(t)).ToList();
                 return Ok(result);
             }
             catch (Exception e)
             {
                 return StatusCode(500, e.Message);
             }
-        }
-
-        private KanbanTask<UserLite> ConvertTask(KanbanTask<ApplicationUser> task)
-        {
-            return new KanbanTask<UserLite>
-            {
-                Id = task.Id,
-                BoardId = task.BoardId,
-                Title = task.Title,
-                Description = task.Description,
-                CreatedOn = task.CreatedOn,
-                UpdatedOn = task.UpdatedOn,
-                ClosedOn = task.ClosedOn,
-                ShowOnBoard = task.ShowOnBoard,
-                Priority = task.Priority,
-                State = task.State,
-                CreatedById = task.CreatedById,
-                CreatedBy = task.CreatedBy is null ? null : task.CreatedBy.ConvertToUserLite(),
-                AssignedToId = task.AssignedToId,
-                AssignedTo = task.AssignedTo is null ? null : task.AssignedTo.ConvertToUserLite(),
-                ValidatorId = task.ValidatorId,
-                Validator = task.Validator is null ? null : task.Validator.ConvertToUserLite()
-            };
-        }
-
-        private KanbanTask<ApplicationUser> ConvertTask(KanbanTask<UserLite> task)
-        {
-            return new KanbanTask<ApplicationUser>
-            {
-                Id = task.Id,
-                BoardId = task.BoardId,
-                Title = task.Title,
-                Description = task.Description,
-                CreatedOn = task.CreatedOn,
-                UpdatedOn = task.UpdatedOn,
-                ClosedOn = task.ClosedOn,
-                ShowOnBoard = task.ShowOnBoard,
-                Priority = task.Priority,
-                State = task.State,
-                CreatedById = task.CreatedById,
-                AssignedToId = task.AssignedToId,
-                ValidatorId = task.ValidatorId,
-            };
         }
     }
 }

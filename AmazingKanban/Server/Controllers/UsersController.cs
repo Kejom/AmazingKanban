@@ -14,12 +14,11 @@ namespace AmazingKanban.Server.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
-        private readonly IUserLiteFactory _userLiteFactory;
 
-        public UsersController(IUserRepository userRepository, IUserLiteFactory userLiteFactory)
+
+        public UsersController(IUserRepository userRepository)
         {
             _userRepository = userRepository;
-            _userLiteFactory = userLiteFactory;
         }
 
         [HttpGet]
@@ -27,19 +26,6 @@ namespace AmazingKanban.Server.Controllers
         {
             var users = await _userRepository.GetUsers(filter);
             var result = users.Select(u=> u.ConvertToUserLite()).ToList();  
-            return Ok(result);
-        }
-        [HttpGet("{boardId}")]
-        public async Task<IActionResult> GetByBoardId(int boardId)
-        {
-            var users = await _userRepository.GetUsersByBoardId(boardId);
-
-            var result = users.Select(u => new BoardUserVM
-            {
-                User = _userLiteFactory.Convert(u.User!),
-                BoardRole = u.Role
-            }).ToList();
-
             return Ok(result);
         }
     }

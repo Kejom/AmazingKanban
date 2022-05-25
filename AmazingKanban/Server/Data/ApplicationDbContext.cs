@@ -9,7 +9,7 @@ namespace AmazingKanban.Server.Data
     public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
     {
         public DbSet<Board> Boards { get; set; }
-        public DbSet<BoardUserAccess> BoardUserAccesses { get; set; }
+        public DbSet<BoardAccess<ApplicationUser>> BoardAccesses { get; set; }
         public DbSet<KanbanTask<ApplicationUser>> KanbanTasks { get; set; }
         public DbSet<TaskComment<ApplicationUser>> TaskComments { get; set; }
 

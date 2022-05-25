@@ -26,12 +26,5 @@ namespace AmazingKanban.Server.Repositories
                 u.LastName.ToLower().Contains(filter.ToLower()))
                 .ToListAsync();
         }
-        public async Task<List<BoardUserAccess>> GetUsersByBoardId(int boardId)
-        {
-            return await _dbContext.BoardUserAccesses
-                .Where(a=> a.BoardId == boardId)
-                .Include(a => a.User)
-                .ToListAsync();
-        }
     }
 }

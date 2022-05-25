@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace AmazingKanban.Shared.ViewModels
 {
-    public class BoardVM
+    public class BoardSubmitVM
     {
         public Board Board { get; set; } = new Board();
-        public List<BoardUserAccess> UserAccesses { get; set; } = new List<BoardUserAccess>();
+        public List<BoardAccess<UserLite>> UserAccesses { get; set; } = new List<BoardAccess<UserLite>>();
     }
 }

@@ -36,10 +36,11 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddTransient<IBoardRepository, BoardRepository>();
+builder.Services.AddTransient<IBoardAccessRepository, BoardAccessRepository>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
-builder.Services.AddTransient<IUserLiteFactory, UserLiteFactory>();
 builder.Services.AddTransient<IKanbanTaskRepository, KanbanTaskRepository>();
 builder.Services.AddTransient<ITaskCommentRepository, TaskCommentRepository>();
+builder.Services.AddTransient<IModelFactory, ModelFactory>();
 
 var app = builder.Build();
 

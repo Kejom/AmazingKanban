@@ -7,9 +7,9 @@ namespace AmazingKanban.Client.Services
     {
         IList<Board> Boards { get; set; }
         event Action OnChange;
-        Task AddBoard(BoardVM board);
+        Task AddBoard(BoardSubmitVM board);
         Task LoadBoardsAsync();
-        Task<BoardVM?> GetBoardById(int id);
-        Task UpdateBoardAccesses(int boardId, List<BoardUserAccess> accesses);
+        Task<BoardSubmitVM?> GetBoardById(int id);
+        Task UpdateBoardAccesses(int boardId, List<BoardAccess<UserLite>> accesses);
     }
 }

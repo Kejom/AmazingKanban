@@ -102,7 +102,7 @@
 
 @code {
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
-    BoardVM newBoard = new BoardVM();
+    BoardSubmitVM newBoard = new BoardSubmitVM();
     BoardUserVM SelectedUser = new BoardUserVM();
     List<BoardUserVM> SelectedUsers = new List<BoardUserVM>();
 
@@ -138,7 +138,7 @@
         foreach(var user in SelectedUsers)
         {
             newBoard.UserAccesses.Add(
-                new BoardUserAccess
+                new BoardAccess<UserLite>
                     {
                         UserId = user.User.Id,
                         Role = user.BoardRole.Value
