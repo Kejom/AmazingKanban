@@ -73,17 +73,24 @@ namespace AmazingKanban.Server.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            submitVM.Board.OwnerId = userId;
-            await _boardRepository.AddBoard(submitVM.Board);
-
-            foreach (var userAccess in submitVM.UserAccesses)
+            try
             {
-                var accessToAdd = _modelFactory.Convert(userAccess);
-                accessToAdd.BoardId = submitVM.Board.Id;
-                await _boardAccessRepository.Add(accessToAdd);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                submitVM.Board.OwnerId = userId;
+                await _boardRepository.AddBoard(submitVM.Board);
+
+                foreach (var userAccess in submitVM.UserAccesses)
+                {
+                    var accessToAdd = _modelFactory.Convert(userAccess);
+                    accessToAdd.BoardId = submitVM.Board.Id;
+                    await _boardAccessRepository.Add(accessToAdd);
+                }
+                return Ok(submitVM.Board);
             }
-            return Ok(submitVM.Board);
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
     }
 }
