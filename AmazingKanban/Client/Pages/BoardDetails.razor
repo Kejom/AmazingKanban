@@ -1,7 +1,8 @@
 ﻿@page "/boards/{id}"
 @inject IBoardService BoardService
-@inject IUsersService UsersService
+@inject IBoardAccessService AccessService
 @inject IUserUtility UserUtility
+@inject IToastService ToastService
 @inject NavigationManager NavigationManager
 
 @attribute [Authorize]
@@ -10,7 +11,7 @@
     {
         <div class="row pt-4">
             <div class="col-3">
-                <h2 class="text-primary">@Board.Board.Name</h2>
+                <h2 class="text-primary">@Board.Name</h2>
             </div>
             <div class="col-3 text-right">
                 <button class="btn btn-primary" style="width:100%"><span class="oi oi-task"></span> Create Task</button>
@@ -45,9 +46,9 @@
 
     [Parameter] public string? Id { get; set; }
 
-    public BoardSubmitVM? Board { get; set; }
+    public Board? Board { get; set; }
 
-    public List<BoardUserVM> Users { get; set; } = new List<BoardUserVM>();
+    public List<BoardAccess<UserLite>> BoardAccesses { get; set; } = new List<BoardAccess<UserLite>>();
 
     public BoardRoles UserRole { get; set; }
 
@@ -56,16 +57,22 @@
         if (Id is not null)
         {
             Board = await BoardService.GetBoardById(Int32.Parse(Id));
-            Users = await UsersService.GetByBoardId(Int32.Parse(Id));
+            BoardAccesses = await AccessService.GetByBoardId(Int32.Parse(Id));
             UserRole = await GetCurrentUserAccess();
+
+            if(UserRole == BoardRoles.NoAccess)
+            {
+                ToastService.ShowWarning("You dont have access to this board", heading:"No Access");
+                NavigationManager.NavigateTo("board");
+            }
         }
     }
 
     void ShowManageUsersModal()
     {
         var parameters = new ModalParameters();
-        parameters.Add("BoardId", Int32.Parse(Id));
-        parameters.Add("Users", Users);
+        parameters.Add("BoardId", Int32.Parse(Id!));
+        parameters.Add("BoardAccesses", BoardAccesses);
 
         Modal.Show<ManageUsers>("Manage Users", parameters);
     }
@@ -78,10 +85,10 @@
             return BoardRoles.Admin;
 
         var userId = await UserUtility.GetCurrentUserId();
-        var user = Users.FirstOrDefault(u => u.User.Id == userId);
+        var user = BoardAccesses.FirstOrDefault(u => u.UserId == userId);
 
         if (user is not null)
-            return user.BoardRole.Value;
+            return user.Role;
 
         return BoardRoles.NoAccess;
     }

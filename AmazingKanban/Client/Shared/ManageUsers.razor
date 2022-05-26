@@ -1,10 +1,11 @@
 ﻿@inject IUsersService UserService
 @inject IUserUtility UserUtility
 @inject IBoardService BoardService
+@inject IBoardAccessService AccessService
 
 <div style="width:25em">
     <div class="border p-3" style="width:90%;margin:auto">
-        <EditForm Model="Users" OnValidSubmit="UpdateUsers">
+        <EditForm Model="BoardAccesses" OnValidSubmit="UpdateUsers">
             <BlazoredTypeahead SearchMethod="@TypeAhead"
                                @bind-Value="@SelectedUser"
                                placeholder="Search for user.."
@@ -38,7 +39,7 @@
                         <tr>
                             <td>@SelectedUser.User.Email</td>
                             <td>
-                                <InputSelect @bind-Value="SelectedUser.BoardRole">
+                                <InputSelect @bind-Value="SelectedUser.Role">
                                     @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
                                     {
                                     <option value="@role">@role</option>
@@ -52,14 +53,14 @@
                         </td>
                     </tr>
                     }
-                    @if (Users.Count > 0)
+                    @if (BoardAccesses.Count > 0)
                     {
-                        @foreach (var user in Users)
+                        @foreach (var access in BoardAccesses)
                         {
                             <tr>
-                                <td>@user.User.Email</td>
+                                <td>@access.User.Email</td>
                                 <td>
-                                    <InputSelect @bind-Value="user.BoardRole" disabled="@IsDisabled(user)">
+                                    <InputSelect @bind-Value="access.Role" disabled="@IsDisabled(access)">
                                         @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
                                         {
                                             if ((BoardRoles)role == BoardRoles.NoAccess)
@@ -70,9 +71,9 @@
                         </td>
                         <td>
                             <div class="w-75 btn-group" role="group">
-                                @if (!IsDisabled(user))
+                                @if (!IsDisabled(access))
                                         {
-                                            <button class="btn btn-danger" @onclick="()=> Users.Remove(user)"><span class="oi oi-delete"></span></button>
+                                            <button class="btn btn-danger" @onclick="()=> BoardAccesses.Remove(access)"><span class="oi oi-delete"></span></button>
                                         }
                                     </div>
                                 </td>
@@ -89,43 +90,38 @@
 @code {
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int BoardId { get; set; }
-    [Parameter] public List<BoardUserVM> Users { get; set; }
+    [Parameter] public List<BoardAccess<UserLite>> BoardAccesses { get; set; }
 
-    BoardUserVM SelectedUser = new BoardUserVM();
+    BoardAccess<UserLite>SelectedUser = new BoardAccess<UserLite>(){User = new UserLite()};
     string currentUserId = String.Empty;
 
-    async Task<IEnumerable<BoardUserVM>> TypeAhead(string filter)
+    async Task<IEnumerable<BoardAccess<UserLite>>> TypeAhead(string filter)
     {
         var users = await UserService.GetUsers(filter);
-        var usersVM = users.Select(u => new BoardUserVM
+        var accesses = users.Select(u => new BoardAccess<UserLite>
             {
+                BoardId = BoardId,
+                UserId = u.Id,
                 User = u,
-                BoardRole = BoardRoles.User
+                Role = BoardRoles.User
             });
 
-        return usersVM.Where(u => !Users.Exists(s => s.User.Id == u.User.Id) && u.User.Id != currentUserId).ToList();
+        return accesses.Where(u => !BoardAccesses.Exists(s => s.UserId == u.User.Id) && u.User.Id != currentUserId).ToList();
     }
     async Task UpdateUsers()
     {
-        var userAccesses = Users.Select(u => new BoardAccess<UserLite>
-            {
-                UserId = u.User.Id,
-                Role = u.BoardRole.Value,
-                BoardId = BoardId
-            }).ToList();
-        await BoardService.UpdateBoardAccesses(BoardId, userAccesses);
+        await AccessService.UpdateForBoardId(BoardId, BoardAccesses);
         await ModalInstance.CloseAsync();
     }
     void AddUserToList()
     {
-        SelectedUser.BoardRole = BoardRoles.User;
-        Users.Add(SelectedUser);
-        SelectedUser = new BoardUserVM();
+        BoardAccesses.Add(SelectedUser);
+        SelectedUser = new BoardAccess<UserLite>(){User = new UserLite()};
     }
 
-    bool IsDisabled(BoardUserVM user)
+    bool IsDisabled(BoardAccess<UserLite> access)
     {
-        return user.User.Id == currentUserId;
+        return access.UserId == currentUserId;
     }
 
     protected override async Task OnInitializedAsync()

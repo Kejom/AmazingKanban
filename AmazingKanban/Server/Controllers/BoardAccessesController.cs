@@ -123,7 +123,7 @@ namespace AmazingKanban.Server.Controllers
             }
         }
 
-        [HttpPost("board/{boardId}")]
+        [HttpPut("board/{boardId}")]
         public async Task<IActionResult> UpdateBoardAccesses(int boardId, List<BoardAccess<UserLite>> accesses)
         {
             try

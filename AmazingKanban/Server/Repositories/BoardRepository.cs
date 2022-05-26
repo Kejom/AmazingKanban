@@ -38,19 +38,19 @@ namespace AmazingKanban.Server.Repositories
             return await _dbContext.BoardAccesses.Where(b => b.UserId == userId).Include(b => b.Board).Select(b => b.Board!).ToListAsync();
         }
 
-        public async Task AddBoard(Board board)
+        public async Task Add(Board board)
         {
             _dbContext.Boards.Add(board);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task UpdateBoard(Board board)
+        public async Task Update(Board board)
         {
             _dbContext.Boards.Update(board);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task DeleteBoard(int id)
+        public async Task Delete(int id)
         {
             var boardToRemove = await _dbContext.Boards.FirstOrDefaultAsync(b => b.Id == id);
             if (boardToRemove is null)

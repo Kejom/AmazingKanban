@@ -6,10 +6,12 @@ namespace AmazingKanban.Client.Services
     public interface IBoardService
     {
         IList<Board> Boards { get; set; }
+
         event Action OnChange;
-        Task AddBoard(BoardSubmitVM board);
+
+        Task AddBoard(BoardSubmitVM boardVM);
+        Task<Board?> GetBoardById(int id);
         Task LoadBoardsAsync();
-        Task<BoardSubmitVM?> GetBoardById(int id);
         Task UpdateBoardAccesses(int boardId, List<BoardAccess<UserLite>> accesses);
     }
 }

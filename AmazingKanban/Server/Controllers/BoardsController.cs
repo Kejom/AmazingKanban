@@ -77,7 +77,7 @@ namespace AmazingKanban.Server.Controllers
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 submitVM.Board.OwnerId = userId;
-                await _boardRepository.AddBoard(submitVM.Board);
+                await _boardRepository.Add(submitVM.Board);
 
                 foreach (var userAccess in submitVM.UserAccesses)
                 {
@@ -86,6 +86,22 @@ namespace AmazingKanban.Server.Controllers
                     await _boardAccessRepository.Add(accessToAdd);
                 }
                 return Ok(submitVM.Board);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Put(Board board)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            try
+            {
+                await _boardRepository.Update(board);
+                return Ok(board);
             }
             catch (Exception e)
             {

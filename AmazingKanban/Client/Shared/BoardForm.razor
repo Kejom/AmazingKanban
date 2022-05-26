@@ -20,7 +20,7 @@
             <div class="form-group" style="margin:5px">
                 <div style="display:flex; justify-content:center"><label for="users" style="text-align:center">User Access</label></div>
                 <BlazoredTypeahead SearchMethod="@TypeAhead"
-                                   @bind-Value="@SelectedUser"
+                                   @bind-Value="@newAccess"
                                    placeholder="Search for user.."
                                    Debounce="500">
                     <SelectedTemplate Context="selectedContext">
@@ -47,12 +47,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (!String.IsNullOrEmpty(SelectedUser.User.Email))
+                        @if (!String.IsNullOrEmpty(newAccess.User.Email))
                         {
                             <tr>
-                                <td>@SelectedUser.User.Email</td>
+                                <td>@newAccess.User.Email</td>
                                 <td>
-                                    <InputSelect @bind-Value="SelectedUser.BoardRole">
+                                    <InputSelect @bind-Value="newAccess.Role">
                                         @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
                                         {
                                         if((BoardRoles)role == BoardRoles.NoAccess)
@@ -69,14 +69,14 @@
                             </td>
                         </tr>
                         }
-                        @if (SelectedUsers.Count > 0)
+                        @if (newBoard.UserAccesses.Count > 0)
                         {
-                            @foreach (var user in SelectedUsers)
+                            @foreach (var access in newBoard.UserAccesses)
                             {
                                 <tr>
-                                    <td>@user.User.Email</td>
+                                    <td>@access.User.Email</td>
                                     <td>
-                                        <InputSelect @bind-Value="user.BoardRole">
+                                        <InputSelect @bind-Value="access.Role">
                                             @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
                                             {
                                         <option value="@role">@role</option>
@@ -85,7 +85,7 @@
                             </td>
                             <td>
                                 <div class="w-75 btn-group" role="group">
-                                    <button class="btn btn-danger" @onclick="()=> SelectedUsers.Remove(user)"><span class="oi oi-delete"></span></button>
+                                    <button class="btn btn-danger" @onclick="()=> newBoard.UserAccesses.Remove(access)"><span class="oi oi-delete"></span></button>
                                 </div>
                             </td>
                         </tr>
@@ -103,47 +103,32 @@
 @code {
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     BoardSubmitVM newBoard = new BoardSubmitVM();
-    BoardUserVM SelectedUser = new BoardUserVM();
-    List<BoardUserVM> SelectedUsers = new List<BoardUserVM>();
+    BoardAccess<UserLite> newAccess = new BoardAccess<UserLite>(){ User = new UserLite()};
+
 
     async Task CreateBoard()
     {
-        AddSelectedUsersToNewBoard();
         await BoardService.AddBoard(newBoard);
         await ModalInstance.CloseAsync();
     }
 
-    async Task<IEnumerable<BoardUserVM>> TypeAhead(string filter)
+    async Task<IEnumerable<BoardAccess<UserLite>>> TypeAhead(string filter)
     {
         var users = await UserService.GetUsers(filter);
-        var usersVM = users.Select(u => new BoardUserVM
+        var usersVM = users.Select(u => new BoardAccess<UserLite>
             {
+                UserId = u.Id,
                 User = u,
-                BoardRole = BoardRoles.User
+                Role = BoardRoles.User
 
             });
         var currentUserId = await UserUtility.GetCurrentUserId();
         Console.WriteLine($"current user ID: {currentUserId}");
-        return usersVM.Where(u => !SelectedUsers.Exists(s => s.User.Id == u.User.Id) && u.User.Id != currentUserId).ToList();
+        return usersVM.Where(u => !newBoard.UserAccesses.Exists(a => a.UserId == u.UserId) && u.UserId != currentUserId).ToList();
     }
     void AddUserToList()
     {
-        SelectedUser.BoardRole = BoardRoles.User;
-        SelectedUsers.Add(SelectedUser);
-        SelectedUser = new BoardUserVM();
-    }
-
-    void AddSelectedUsersToNewBoard()
-    {
-        foreach(var user in SelectedUsers)
-        {
-            newBoard.UserAccesses.Add(
-                new BoardAccess<UserLite>
-                    {
-                        UserId = user.User.Id,
-                        Role = user.BoardRole.Value
-                    }
-            );
-        }
+        newBoard.UserAccesses.Add(newAccess);
+        newAccess = new BoardAccess<UserLite>(){ User = new UserLite()};
     }
 }

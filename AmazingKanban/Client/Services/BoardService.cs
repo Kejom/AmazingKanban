@@ -1,4 +1,5 @@
-﻿using AmazingKanban.Shared.Models;
+﻿using AmazingKanban.Client.Utility;
+using AmazingKanban.Shared.Models;
 using AmazingKanban.Shared.ViewModels;
 using Blazored.Toast.Services;
 using System.Net.Http.Json;
@@ -7,54 +8,70 @@ namespace AmazingKanban.Client.Services
 {
     public class BoardService : IBoardService
     {
-        private readonly HttpClient _httpClient;
         private readonly IToastService _toastService;
+        private readonly IRestApiClient _restClient;
 
         public event Action OnChange;
 
-        public BoardService(HttpClient httpClient, IToastService toastService)
+        public BoardService( IToastService toastService, IRestApiClient restClient)
         {
-            _httpClient = httpClient;
             _toastService = toastService;
+            _restClient = restClient;
         }
         public IList<Board> Boards { get; set; } = new List<Board>();
 
         public async Task LoadBoardsAsync()
         {
-            var result = await _httpClient.GetFromJsonAsync<IList<Board>>("api/boards");
-
-            if (result is not null)
-                Boards = result;
+            try
+            {
+                var result = await _restClient.GetAsync<List<Board>>("api/boards");
+                if (result is not null)
+                    Boards = result;
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+            }
         }
-        public async Task<BoardSubmitVM?> GetBoardById(int id)
+        public async Task<Board?> GetBoardById(int id)
         {
-            return await _httpClient.GetFromJsonAsync<BoardSubmitVM>($"api/boards/{id}");
+            try
+            {
+                return await _restClient.GetAsync<Board>($"api/boards/{id}");
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+                return null;
+            }
         }
 
         public async Task AddBoard(BoardSubmitVM boardVM)
         {
-            var result = await _httpClient.PostAsJsonAsync("api/boards/add", boardVM);
-
-            if(result.StatusCode != System.Net.HttpStatusCode.OK)
+            try
             {
-                _toastService.ShowError(await result.Content.ReadAsStringAsync());
-                return;
-            }             
-
-            var addedBoard = await result.Content.ReadFromJsonAsync<Board>();
-            Boards.Add(addedBoard);
-            BoardChanged();
-            _toastService.ShowSuccess($"Board {addedBoard.Name} has been created.");
+                var addedBoard = await _restClient.PostAsync<Board, BoardSubmitVM>("api/boards", boardVM);
+                Boards.Add(addedBoard);
+                BoardChanged();
+                _toastService.ShowSuccess($"Board {addedBoard.Name} has been created.");
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+            }
         }
 
         public async Task UpdateBoardAccesses(int boardId, List<BoardAccess<UserLite>> accesses)
         {
-            var result = await _httpClient.PostAsJsonAsync($"api/boards/access/{boardId}", accesses);
-
-            if (result.StatusCode != System.Net.HttpStatusCode.OK)
-                _toastService.ShowError(await result.Content.ReadAsStringAsync());
-            else
+            try
+            {
+                await _restClient.PutAsync<List<BoardAccess<UserLite>>>($"api/boards/access/board/{boardId}", accesses);
                 _toastService.ShowSuccess("Accesses Updated");
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+            }
         }
 
         void BoardChanged() => OnChange.Invoke();
