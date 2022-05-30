@@ -79,6 +79,14 @@ namespace AmazingKanban.Server.Controllers
                 submitVM.Board.OwnerId = userId;
                 await _boardRepository.Add(submitVM.Board);
 
+                submitVM.UserAccesses.Add(
+                    new BoardAccess<UserLite>
+                    {
+                        UserId = userId,
+                        BoardId = submitVM.Board.Id,
+                        Role = BoardRoles.Admin
+                    });
+
                 foreach (var userAccess in submitVM.UserAccesses)
                 {
                     var accessToAdd = _modelFactory.Convert(userAccess);

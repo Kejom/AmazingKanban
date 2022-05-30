@@ -34,7 +34,11 @@ namespace AmazingKanban.Server.Repositories
             var access = await _dbContext.BoardAccesses.Include(a => a.User).FirstOrDefaultAsync(a => a.UserId == userId && a.BoardId == boardId);
 
             if (access is null)
-                return new BoardAccess<ApplicationUser> { BoardId = boardId, UserId = userId, Role = BoardRoles.NoAccess };
+            {
+                var user = await _dbContext.Users.FirstAsync(u => u.Id == userId);
+                return new BoardAccess<ApplicationUser> { BoardId = boardId, UserId = userId, User = user, Role = BoardRoles.NoAccess };
+            }
+
 
             return access;
         }

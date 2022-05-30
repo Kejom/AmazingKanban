@@ -43,5 +43,16 @@ namespace AmazingKanban.Client.Utility
             string msg = await response.Content.ReadAsStringAsync();
             throw new Exception(msg);
         }
+
+        public async Task DeleteAsync(string url)
+        {
+            var response = await _httpClient.DeleteAsync(url);
+
+            if (response.IsSuccessStatusCode)
+                return;
+
+            string msg = await response.Content.ReadAsStringAsync();
+            throw new Exception(msg);
+        }
     }
 }

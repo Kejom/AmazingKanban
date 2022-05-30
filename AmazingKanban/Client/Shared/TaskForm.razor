@@ -1,0 +1,233 @@
+﻿@inject IBoardAccessService AccessService
+@inject IUsersService UserService
+@inject ITaskService TaskService
+@inject IUserUtility UserUtility
+@inject IToastService ToastService
+@inject NavigationManager NavManager
+
+@if (OpenedTask is not null)
+{
+    <div class="container" style="min-width: 80em">
+        <EditForm Model="OpenedTask" OnValidSubmit="@SubmitCreate">
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+            <div class="card">
+                <div class="card-header bg-dark text-light m-lg-0 row container">
+                    <div class="col-12 d-none d-md-block col-md-3 pb-1">
+                        @if (OpenedTask.Id > 0)
+                        {
+                            @OpenedTask.Id
+                        }
+                    </div>
+                    <div class="col-12 d-md-block col-md-4">
+                        <InputText id="title" @bind-Value="OpenedTask.Title" class="form-control" diabled="@isDisabled" placeholder="Title"></InputText>
+                        <ValidationMessage For="@(() => OpenedTask.Title)" />
+                    </div>
+                    <div class="col-12 d-md-block col-md-5">
+                        <div class="w-75 btn-group">
+                            @if (isNewTask)
+                            {
+                                <button type="submit" class="btn btn-primary">Create</button>
+                                <button class="btn btn-primary">Cancel</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-primary">Update</button>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+                <div class="card-body pb-0">
+                    <div class="container rounded p-2">
+                        <div class="row">
+                            <div class="col-12 col-lg-6 pb-4">
+                                <div class="row">
+                                    <h4 class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="text-info">Details:</span>
+                                    </h4>
+                                </div>
+                                <div class="row mb-2 input-group">
+                                    <div class="col-5">Task State:</div>
+                                    <div class="col-7"><input type="text" class="form-control" value="@OpenedTask.State.GetDisplayName()" disabled /></div>
+                                </div>
+                                <div class="row mb-2 input-group">
+                                    <div class="col-5">Priority</div>
+                                    <div class="col-7">
+                                        <InputNumber @bind-Value="OpenedTask.Priority" class="form-control"></InputNumber>
+                                        <ValidationMessage For="@(() => OpenedTask.Priority)" />
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row mb-2">
+                                    <div class="col-12">Description:</div>
+                                </div>
+                                <div class="row">
+                                    <InputTextArea id="description" @bind-Value="OpenedTask.Description" diabled="@isDisabled" style="height: 15em" placeholder="Description..."></InputTextArea>
+                                </div>
+                            </div>
+                            <div class="col-12 col-lg-5 offset-lg-1">
+                                <h4 class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-info">People:</span>
+                                </h4>
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        Created By:
+                                    </div>
+                                    <div class="col-6">
+                                        <BlazoredTypeahead SearchMethod="@TypeAhead"
+                                                       @bind-Value="@(OpenedTask.CreatedBy)"
+                                                       placeholder="Search for user.."
+                                                       Disabled="true"
+                                                       Debounce="500">
+                                            <SelectedTemplate Context="selectedContext">
+                                                @selectedContext.Email
+                                            </SelectedTemplate>
+                                            <ResultTemplate Context="resultContext">
+                                                @resultContext.Email
+                                            </ResultTemplate>
+                                            <NotFoundTemplate Context="notFoundContext">
+                                                No users found
+                                            </NotFoundTemplate>
+                                        </BlazoredTypeahead>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        Assigned To:
+                                    </div>
+                                    <div class="col-6">
+                                        <BlazoredTypeahead SearchMethod="@TypeAhead"
+                                                       @bind-Value="@(OpenedTask.AssignedTo)"
+                                                       placeholder="Search for user.."
+                                                       Debounce="500">
+                                            <SelectedTemplate Context="selectedContext">
+                                                @selectedContext.Email
+                                            </SelectedTemplate>
+                                            <ResultTemplate Context="resultContext">
+                                                @resultContext.Email
+                                            </ResultTemplate>
+                                            <NotFoundTemplate Context="notFoundContext">
+                                                No users found
+                                            </NotFoundTemplate>
+                                        </BlazoredTypeahead>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col-6">
+                                        Validator:
+                                    </div>
+                                    <div class="col-6">
+                                        <BlazoredTypeahead SearchMethod="@TypeAhead"
+                                                       @bind-Value="@(OpenedTask.Validator)"
+                                                       placeholder="Search for user.."
+                                                       Debounce="500">
+                                            <SelectedTemplate Context="selectedContext">
+                                                @selectedContext.Email
+                                            </SelectedTemplate>
+                                            <ResultTemplate Context="resultContext">
+                                                @resultContext.Email
+                                            </ResultTemplate>
+                                            <NotFoundTemplate Context="notFoundContext">
+                                                No users found
+                                            </NotFoundTemplate>
+                                        </BlazoredTypeahead>
+                                    </div>
+                                </div>
+                                @if (!isNewTask)
+                                {
+                                    <h4 class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="text-info">Dates:</span>
+                                    </h4>
+                                    <div class="row mb-2">
+                                        <div class="col-6">Created:</div>
+                                        <div class="col-6"><InputDateTime @bind-Value="OpenedTask.CreatedOn" disabled></InputDateTime></div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-6">Updated:</div>
+                                        <div class="col-6"><InputDateTime @bind-Value="OpenedTask.UpdatedOn" disabled></InputDateTime></div>
+                                    </div>
+                                }
+
+                                @if (OpenedTask.State == KanbanTaskStates.Done)
+                                {
+                                    <div class="row mb-2">
+                                        <div class="col-6">Closed:</div>
+                                        <div class="col-6"><InputDateTime @bind-Value="OpenedTask.ClosedOn" disabled></InputDateTime></div>
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+}
+
+
+@code {
+    [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
+    [Parameter] public int BoardId { get; set; }
+    [Parameter] public int TaskId { get; set; } = 0;
+    KanbanTask<UserLite> OpenedTask { get; set; } = new KanbanTask<UserLite>
+        {
+            CreatedBy = new UserLite(),
+            AssignedTo = new UserLite(),
+            Validator = new UserLite(),
+            State = KanbanTaskStates.New,
+            CreatedOn = DateTime.Now
+        };
+    BoardAccess<UserLite> CurrentUserAccess { get; set; } = new BoardAccess<UserLite>();
+    bool isNewTask = false;
+    bool isDisabled => !isNewTask;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAccess();
+        if (TaskId == 0)
+        {
+            isNewTask = true;
+            OpenedTask.CreatedById = CurrentUserAccess.UserId;
+            OpenedTask.CreatedBy = CurrentUserAccess.User;
+            return;
+        }
+
+
+
+    }
+
+    async Task CheckAccess()
+    {
+        var userId = await UserUtility.GetCurrentUserId();
+        var isAdmin = await UserUtility.IsAdmin();
+        CurrentUserAccess = await AccessService.GetByBoardAndUserId(BoardId, userId);
+
+        if (isAdmin)
+        {
+            CurrentUserAccess.Role = BoardRoles.Admin;
+            return;
+        }
+
+
+        if (CurrentUserAccess.Role == BoardRoles.NoAccess)
+        {
+            ToastService.ShowError("Forbidden: no access");
+            NavManager.NavigateTo("boards");
+        }
+
+    }
+
+    async Task<IEnumerable<UserLite>> TypeAhead(string filter)
+    {
+        return await UserService.GetByBoardIdAndRole(BoardId, BoardRoles.Developer, filter);
+    }
+
+    async Task SubmitCreate()
+    {
+        OpenedTask.CreatedOn = DateTime.Now;
+        OpenedTask.State = KanbanTaskStates.New;
+        await TaskService.Add(OpenedTask);
+        await ModalInstance.CloseAsync();
+    }
+}

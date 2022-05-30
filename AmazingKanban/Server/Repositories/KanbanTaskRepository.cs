@@ -1,4 +1,5 @@
 ﻿using AmazingKanban.Server.Data;
+using AmazingKanban.Shared;
 using AmazingKanban.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,6 +37,16 @@ namespace AmazingKanban.Server.Repositories
         {
             return await _dbcontext.KanbanTasks
                 .Where(t => t.BoardId == boardId)
+                .Include(t => t.CreatedBy)
+                .Include(t => t.AssignedTo)
+                .Include(t => t.Validator)
+                .ToListAsync();
+        }
+
+        public async Task<List<KanbanTask<ApplicationUser>>> GetByBoardIdAndState(int boardId, KanbanTaskStates state)
+        {
+            return await _dbcontext.KanbanTasks
+                .Where(t => t.BoardId == boardId && t.State == state)
                 .Include(t => t.CreatedBy)
                 .Include(t => t.AssignedTo)
                 .Include(t => t.Validator)

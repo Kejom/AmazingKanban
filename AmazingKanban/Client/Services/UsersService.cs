@@ -1,4 +1,5 @@
 ﻿using AmazingKanban.Client.Utility;
+using AmazingKanban.Shared;
 using AmazingKanban.Shared.Models;
 using AmazingKanban.Shared.ViewModels;
 using Blazored.Toast.Services;
@@ -38,14 +39,35 @@ namespace AmazingKanban.Client.Services
             }
         }
 
-        public async Task<List<BoardUserVM>> GetByBoardId(int boardId)
+        public async Task<UserLite?>GetById(string userId)
         {
-            var result = await _httpClient.GetFromJsonAsync<List<BoardUserVM>>($"api/users/{boardId}");
+            try
+            {
+                return await _restClient.GetAsync<UserLite>($"api/users/{userId}");
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+                return null;
+            }
+        }
 
-            if (result is null)
-                result = new List<BoardUserVM>();
+        public async Task<IEnumerable<UserLite>>GetByBoardIdAndRole(int boardId, BoardRoles role, string filter)
+        {
+            var url = $"api/users/board/{boardId}/role/{role}";
 
-            return result;
+            if (!String.IsNullOrEmpty(filter))
+                url += $"?filter={filter}";
+
+            try
+            {
+                return await _restClient.GetAsync<IEnumerable<UserLite>>(url);
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+                return new List<UserLite>();
+            }
         }
 
 

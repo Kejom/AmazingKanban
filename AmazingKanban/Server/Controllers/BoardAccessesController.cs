@@ -78,6 +78,24 @@ namespace AmazingKanban.Server.Controllers
             }
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _boardAccessRepository.Delete(id);
+                return Ok();
+            }
+            catch (ArgumentException e)
+            {
+                return BadRequest(e.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetByUserId(string userId)
         {
@@ -122,23 +140,24 @@ namespace AmazingKanban.Server.Controllers
                 return StatusCode(500, e.Message);
             }
         }
-
+        //do naprawy
         [HttpPut("board/{boardId}")]
         public async Task<IActionResult> UpdateBoardAccesses(int boardId, List<BoardAccess<UserLite>> accesses)
         {
             try
             {
                 var newAccesses = accesses.Select((a) => _modelFactory.Convert(a)).ToList();
-                var currentAccesses = await _boardAccessRepository.GetByBoardId(boardId);
-                var accessesToAdd = newAccesses.Except(currentAccesses);
-                var accessesToRemove = currentAccesses.Except(newAccesses);
-                var accessesToUpdate = newAccesses.Intersect(currentAccesses);
+                var newAccessesIds = newAccesses.Select(a => a.Id).ToHashSet();
+                var currentAccessesIds = (await _boardAccessRepository.GetByBoardId(boardId)).Select(a => a.Id).ToHashSet();
+                var accessesToAdd = newAccesses.Where(a => !currentAccessesIds.Contains(a.Id));
+                var accessesToRemove = currentAccessesIds.Where(a => !newAccessesIds.Contains(a));
+                var accessesToUpdate = newAccesses.Where(a => currentAccessesIds.Contains(a.Id));
 
                 foreach (var access in accessesToAdd)
                     await _boardAccessRepository.Add(access);
 
-                foreach (var access in accessesToRemove)
-                    await _boardAccessRepository.Delete(access.Id);
+                foreach (var accessId in accessesToRemove)
+                    await _boardAccessRepository.Delete(accessId);
 
                 foreach (var access in accessesToUpdate)
                     await _boardAccessRepository.Update(access);

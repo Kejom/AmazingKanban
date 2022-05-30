@@ -15,7 +15,7 @@ namespace AmazingKanban.Shared.Models
         public int BoardId { get; set; }
         [ForeignKey("BoardId")]
         public Board? Board { get; set; }
-        public string? UserId { get; set; }
+        public string UserId { get; set; } = String.Empty;
         [ForeignKey("UserId")]
         public T? User { get; set; }
         public BoardRoles Role { get; set; }

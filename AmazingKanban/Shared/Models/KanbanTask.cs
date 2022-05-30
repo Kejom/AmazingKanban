@@ -23,13 +23,13 @@ namespace AmazingKanban.Shared.Models
         [Range(1, 4)]
         public int Priority { get; set; } = 4;
         public KanbanTaskStates State { get; set; }
-        public string CreatedById { get; set; } = String.Empty;
+        public string? CreatedById { get; set; } 
         [ForeignKey("CreatedById")]
         public T? CreatedBy { get; set; }
-        public string AssignedToId { get; set; } = String.Empty;
+        public string? AssignedToId { get; set; } 
         [ForeignKey("AssignedToId")]
         public T? AssignedTo { get; set; }
-        public string ValidatorId { get; set; } = String.Empty;
+        public string? ValidatorId { get; set; }
         [ForeignKey("ValidatorId")]
         public T? Validator { get; set; }
 

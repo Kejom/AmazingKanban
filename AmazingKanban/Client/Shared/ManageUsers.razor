@@ -5,7 +5,7 @@
 
 <div style="width:25em">
     <div class="border p-3" style="width:90%;margin:auto">
-        <EditForm Model="BoardAccesses" OnValidSubmit="UpdateUsers">
+        <EditForm Model="BoardAccesses">
             <BlazoredTypeahead SearchMethod="@TypeAhead"
                                @bind-Value="@SelectedUser"
                                placeholder="Search for user.."
@@ -42,13 +42,15 @@
                                 <InputSelect @bind-Value="SelectedUser.Role">
                                     @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
                                     {
+                                        if ((BoardRoles)role == BoardRoles.NoAccess)
+                                            continue;
                                     <option value="@role">@role</option>
                                     }
                             </InputSelect>
                         </td>
                         <td>
                             <div class="w-75 btn-group" role="group">
-                                <button class="btn btn-success" @onclick="AddUserToList"><span class="oi oi-plus"></span></button>
+                                <button class="btn btn-success" @onclick="AddAccess"><span class="oi oi-plus"></span></button>
                             </div>
                         </td>
                     </tr>
@@ -60,20 +62,23 @@
                             <tr>
                                 <td>@access.User.Email</td>
                                 <td>
-                                    <InputSelect @bind-Value="access.Role" disabled="@IsDisabled(access)">
+                                    <InputSelect disabled="@IsDisabled(access)"
+                                         Value="@access.Role"
+                                         ValueExpression="@(()=> access.Role)"
+                                         ValueChanged="@((BoardRoles role) => UpdateAccess(access, role))">
                                         @foreach (var role in Enum.GetValues(typeof(BoardRoles)))
-                                        {
-                                            if ((BoardRoles)role == BoardRoles.NoAccess)
-                                                continue;
+                                {
+                                    if ((BoardRoles)role == BoardRoles.NoAccess)
+                                        continue;
                                     <option value="@role">@role</option>
-                                        }
+                                }
                             </InputSelect>
                         </td>
                         <td>
                             <div class="w-75 btn-group" role="group">
                                 @if (!IsDisabled(access))
                                         {
-                                            <button class="btn btn-danger" @onclick="()=> BoardAccesses.Remove(access)"><span class="oi oi-delete"></span></button>
+                                            <button class="btn btn-danger" @onclick="()=> DeleteAccess(access)"><span class="oi oi-delete"></span></button>
                                         }
                                     </div>
                                 </td>
@@ -82,7 +87,6 @@
                     }
                 </tbody>
             </table>
-            <div style="display:flex; justify-content:center; margin:5px"><button type="submit" class="btn btn-primary">Save Changes</button></div>
         </EditForm>
     </div>
 </div>
@@ -90,9 +94,9 @@
 @code {
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int BoardId { get; set; }
-    [Parameter] public List<BoardAccess<UserLite>> BoardAccesses { get; set; }
+    public List<BoardAccess<UserLite>> BoardAccesses { get; set; } = new List<BoardAccess<UserLite>>();
 
-    BoardAccess<UserLite>SelectedUser = new BoardAccess<UserLite>(){User = new UserLite()};
+    BoardAccess<UserLite> SelectedUser = new BoardAccess<UserLite>() { User = new UserLite() };
     string currentUserId = String.Empty;
 
     async Task<IEnumerable<BoardAccess<UserLite>>> TypeAhead(string filter)
@@ -108,16 +112,41 @@
 
         return accesses.Where(u => !BoardAccesses.Exists(s => s.UserId == u.User.Id) && u.User.Id != currentUserId).ToList();
     }
-    async Task UpdateUsers()
+
+    async Task AddAccess()
     {
-        await AccessService.UpdateForBoardId(BoardId, BoardAccesses);
-        await ModalInstance.CloseAsync();
+        var result = await AccessService.Add(SelectedUser);
+        if (result == -1)
+        {
+            BoardAccesses = await AccessService.GetByBoardId(BoardId);
+        }
+        else
+        {
+            SelectedUser.Id = result;
+            BoardAccesses.Add(SelectedUser);
+        }
+        SelectedUser = new BoardAccess<UserLite>() { User = new UserLite() };
     }
-    void AddUserToList()
+
+    async Task UpdateAccess(BoardAccess<UserLite> access, BoardRoles role)
     {
-        BoardAccesses.Add(SelectedUser);
-        SelectedUser = new BoardAccess<UserLite>(){User = new UserLite()};
+        var oldRole = access.Role;
+        access.Role = role;
+        var result = await AccessService.Update(access);
+
+        if (!result)
+            access.Role = oldRole;
     }
+
+    async Task DeleteAccess(BoardAccess<UserLite> access)
+    {
+        var result = await AccessService.Delete(access);
+
+        if (result)
+            BoardAccesses.Remove(access);
+    }
+
+
 
     bool IsDisabled(BoardAccess<UserLite> access)
     {
@@ -127,5 +156,6 @@
     protected override async Task OnInitializedAsync()
     {
         currentUserId = await UserUtility.GetCurrentUserId();
+        BoardAccesses = await AccessService.GetByBoardId(BoardId);
     }
 }

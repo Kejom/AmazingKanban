@@ -26,5 +26,27 @@ namespace AmazingKanban.Server.Repositories
                 u.LastName.ToLower().Contains(filter.ToLower()))
                 .ToListAsync();
         }
+
+        public async Task<ApplicationUser> GetUserByid(string id)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+
+            if (user is null)
+                throw new ArgumentException("User with given Id doesnt exist");
+
+            return user;
+        }
+
+        public async Task<List<ApplicationUser>> GetByBoardIdAndRole(int boardId, BoardRoles role, string filter = "")
+        {
+            var result = _dbContext.BoardAccesses.Where(u => u.BoardId == boardId && u.Role >= role).Include(u => u.User).Select(u => u.User!);
+
+            if (!String.IsNullOrEmpty(filter))
+                result = result.Where(u => u.Email.ToLower().Contains(filter.ToLower()) ||
+                                u.FirstName.ToLower().Contains(filter.ToLower()) ||
+                                u.LastName.ToLower().Contains(filter.ToLower()));
+
+            return await result.ToListAsync();
+        }
     }
 }

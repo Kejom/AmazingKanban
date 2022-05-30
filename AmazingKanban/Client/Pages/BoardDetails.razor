@@ -9,12 +9,15 @@
 <div class="container p-3">
     @if (Board is not null)
     {
+        <div class="row pt-4 text-center">
+            <h2 class="text-primary">@Board.Name</h2>
+        </div>
         <div class="row pt-4">
-            <div class="col-3">
-                <h2 class="text-primary">@Board.Name</h2>
+            <div class="col-3 text-right">
+                <button class="btn btn-primary" style="width:100%" @onclick="ShowCreateTaskModal"><span class="oi oi-task"></span> Create Task</button>
             </div>
             <div class="col-3 text-right">
-                <button class="btn btn-primary" style="width:100%"><span class="oi oi-task"></span> Create Task</button>
+                
             </div>
             <div class="col-3 text-right">
                 @if(UserRole == BoardRoles.Admin)
@@ -30,9 +33,26 @@
             </div>
         </div>
         <br />
+        <div class="row pt-4">
+            <div class="col-1"></div>
+            <div class="col-2 text-center">
+                <span class="text-info h4">@KanbanTaskStates.New.GetDisplayName()</span>
+            </div>
+            <div class="col-2 text-center">
+                <span class="text-info h4">@KanbanTaskStates.ToDo.GetDisplayName()</span>
+            </div>
+            <div class="col-2 text-center">
+                <span class="text-info h4">@KanbanTaskStates.InProgress.GetDisplayName()</span>
+            </div>
+            <div class="col-2 text-center">
+                <span class="text-info h4">@KanbanTaskStates.Testing.GetDisplayName()</span>
+            </div>
+            <div class="col-2 text-center">
+                <span class="text-info h4">@KanbanTaskStates.Done.GetDisplayName()</span>
+            </div>
+            <div class="col-1"></div>
+        </div>
 
-        <br />
-        <p>@Id</p>
     }
     else
     {
@@ -72,9 +92,16 @@
     {
         var parameters = new ModalParameters();
         parameters.Add("BoardId", Int32.Parse(Id!));
-        parameters.Add("BoardAccesses", BoardAccesses);
 
         Modal.Show<ManageUsers>("Manage Users", parameters);
+    }
+
+    void ShowCreateTaskModal()
+    {
+        var parameters = new ModalParameters();
+        parameters.Add("BoardId", Int32.Parse(Id!));
+
+        Modal.Show<TaskForm>("Create Task", parameters);
     }
 
     async Task<BoardRoles> GetCurrentUserAccess()

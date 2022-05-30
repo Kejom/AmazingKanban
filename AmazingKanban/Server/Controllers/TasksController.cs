@@ -16,9 +16,10 @@ namespace AmazingKanban.Server.Controllers
         private readonly IKanbanTaskRepository _taskRepository;
         private readonly IModelFactory _modelFactory;
 
-        public TasksController(IKanbanTaskRepository taskRepository)
+        public TasksController(IKanbanTaskRepository taskRepository, IModelFactory modelFactory)
         {
             _taskRepository = taskRepository;
+            _modelFactory = modelFactory;
         }
 
         [HttpGet]
@@ -101,6 +102,21 @@ namespace AmazingKanban.Server.Controllers
             try
             {
                 var tasks = await _taskRepository.GetByBoardId(boardId);
+                var result = tasks.Select(t => _modelFactory.Convert(t)).ToList();
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
+        [HttpGet("board/{boardId}/state/{state}")]
+        public async Task<IActionResult> GetByBoardIdAndState(int boardId, KanbanTaskStates state)
+        {
+            try
+            {
+                var tasks = await _taskRepository.GetByBoardIdAndState(boardId, state);
                 var result = tasks.Select(t => _modelFactory.Convert(t)).ToList();
                 return Ok(result);
             }

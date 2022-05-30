@@ -1,0 +1,24 @@
+﻿<div class="pb-4">
+    <div class="card bg-white rounded shadow-sm" style="border:1px solid #222">
+        <div class="card-body px-3 pt-3 pb-1 row">
+            <div class="col-9"><label class="float-left">@KanbanTask.Title</label></div>
+            <div class="col-3"><label class="float-right"><span class="text-info h5">Id: @KanbanTask.Id</span></label> </div>
+        </div>
+        <div class="card-body p-1 px-3 row">
+            <div class="col-6">
+                <span class="badge p-2 border w-100" style="background-color:lavenderblush">@KanbanTask.State.GetDisplayName()</span>
+            </div>
+            <div class="col-6 border-0">
+            </div>
+            <div class="col-12 pt-2" style="font-size:13px; text-align:justify">
+
+            </div>
+            <div class="col-12 p-1">
+                <button class="btn btn-dark form-control btn-sm p-2" style="height:40px">Task Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter] public KanbanTask<UserLite> KanbanTask { get; set; } = new KanbanTask<UserLite>();
+}
