@@ -33,25 +33,7 @@
             </div>
         </div>
         <br />
-        <div class="row pt-4">
-            <div class="col-1"></div>
-            <div class="col-2 text-center">
-                <span class="text-info h4">@KanbanTaskStates.New.GetDisplayName()</span>
-            </div>
-            <div class="col-2 text-center">
-                <span class="text-info h4">@KanbanTaskStates.ToDo.GetDisplayName()</span>
-            </div>
-            <div class="col-2 text-center">
-                <span class="text-info h4">@KanbanTaskStates.InProgress.GetDisplayName()</span>
-            </div>
-            <div class="col-2 text-center">
-                <span class="text-info h4">@KanbanTaskStates.Testing.GetDisplayName()</span>
-            </div>
-            <div class="col-2 text-center">
-                <span class="text-info h4">@KanbanTaskStates.Done.GetDisplayName()</span>
-            </div>
-            <div class="col-1"></div>
-        </div>
+        <TaskBoard BoardId="Board.Id" UserRole="UserRole"/>
 
     }
     else
@@ -100,7 +82,7 @@
     {
         var parameters = new ModalParameters();
         parameters.Add("BoardId", Int32.Parse(Id!));
-
+        parameters.Add("UserRole", UserRole);
         Modal.Show<TaskForm>("Create Task", parameters);
     }
 

@@ -9,13 +9,40 @@ namespace AmazingKanban.Client.Services
     {
         private readonly IRestApiClient _restApiClient;
         private readonly IToastService _toastService;
+        public event Action OnChange;
 
         public TaskService(IRestApiClient restApiClient, IToastService toastService)
         {
             _restApiClient = restApiClient;
             _toastService = toastService;
+            States = Enum.GetValues(typeof(KanbanTaskStates)).Cast<KanbanTaskStates>();
+            InitializeTaskDict();
         }
 
+        public IDictionary<KanbanTaskStates, IList<KanbanTask<UserLite>>> Tasks { get; set; }
+        public IEnumerable<KanbanTaskStates> States { get; set; }
+
+        public async Task LoadTasksAsync(int boardId)
+        {
+            InitializeTaskDict();
+            foreach (var state in States)
+            {
+                Tasks[state] = await GetByBoardIdAndState(boardId, state);
+            }
+            TasksChanged();
+        }
+        public async Task<KanbanTask<UserLite>?>GetById(int taskId)
+        {
+            try
+            {
+               return await _restApiClient.GetAsync<KanbanTask<UserLite>>($"api/tasks/{taskId}");
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+                return null;
+            }
+        }
         public async Task<List<KanbanTask<UserLite>>> GetByBoardId(int boardId)
         {
             try
@@ -49,18 +76,32 @@ namespace AmazingKanban.Client.Services
             return new List<KanbanTask<UserLite>>();
         }
 
-        public async Task<int> Add(KanbanTask<UserLite> task)
+        public async Task Add(KanbanTask<UserLite> task)
         {
             try
             {
-                var result = await _restApiClient.PostAsync<int, KanbanTask<UserLite>>("api/tasks", task);
+                var taskId = await _restApiClient.PostAsync<int, KanbanTask<UserLite>>("api/tasks", task);
                 _toastService.ShowSuccess("Task Created!");
-                return result;
+                task.Id = taskId;
+                Tasks[task.State].Add(task);
+                TasksChanged();
+
             }
             catch (Exception e)
             {
                 _toastService.ShowError(e.Message);
-                return -1;
+
+            }
+        }
+
+        void TasksChanged() => OnChange.Invoke();
+
+        private void InitializeTaskDict()
+        {
+            Tasks = new Dictionary<KanbanTaskStates, IList<KanbanTask<UserLite>>>();
+            foreach (var state in States)
+            {
+                Tasks.Add(state, new List<KanbanTask<UserLite>>());
             }
         }
     }

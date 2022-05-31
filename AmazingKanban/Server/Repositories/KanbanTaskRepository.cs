@@ -25,7 +25,10 @@ namespace AmazingKanban.Server.Repositories
 
         public async Task<KanbanTask<ApplicationUser>> GetById(int id)
         {
-            var result = await _dbcontext.KanbanTasks.FirstOrDefaultAsync(t => t.Id == id);
+            var result = await _dbcontext.KanbanTasks.Include(t => t.CreatedBy)
+                .Include(t => t.AssignedTo)
+                .Include(t => t.Validator)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
             if (result is null)
                 throw new ArgumentException("Task with given Id doesnt exist");

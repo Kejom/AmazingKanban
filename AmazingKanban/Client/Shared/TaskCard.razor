@@ -6,19 +6,29 @@
         </div>
         <div class="card-body p-1 px-3 row">
             <div class="col-6">
-                <span class="badge p-2 border w-100" style="background-color:lavenderblush">@KanbanTask.State.GetDisplayName()</span>
+                <span class="badge p-2 border w-100" style="background-color:lavenderblush; color:black">@KanbanTask.State.GetDisplayName()</span>
             </div>
             <div class="col-6 border-0">
             </div>
             <div class="col-12 pt-2" style="font-size:13px; text-align:justify">
-
             </div>
             <div class="col-12 p-1">
-                <button class="btn btn-dark form-control btn-sm p-2" style="height:40px">Task Details</button>
+                <button class="btn btn-dark form-control btn-sm p-2" style="height:40px" @onclick="OpenTaskModal">Task Details</button>
             </div>
         </div>
     </div>
 </div>
 @code {
+    [CascadingParameter] public IModalService Modal { get; set; }
     [Parameter] public KanbanTask<UserLite> KanbanTask { get; set; } = new KanbanTask<UserLite>();
+    [Parameter]public BoardRoles UserRole { get; set; }
+
+    void OpenTaskModal()
+    {
+        var parameters = new ModalParameters();
+        parameters.Add("BoardId", KanbanTask.BoardId);
+        parameters.Add("TaskId", KanbanTask.Id);
+        parameters.Add("UserRole", UserRole);
+        Modal.Show<TaskForm>("Task Details",parameters);
+    }
 }

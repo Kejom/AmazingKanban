@@ -5,7 +5,12 @@ namespace AmazingKanban.Client.Services
 {
     public interface ITaskService
     {
-        Task<int> Add(KanbanTask<UserLite> task);
+        event Action OnChange;
+        IDictionary<KanbanTaskStates, IList<KanbanTask<UserLite>>> Tasks { get; set; }
+        IEnumerable<KanbanTaskStates> States { get; set; }
+        Task LoadTasksAsync(int boardId);
+        Task<KanbanTask<UserLite>?> GetById(int taskId);
+        Task Add(KanbanTask<UserLite> task);
         Task<List<KanbanTask<UserLite>>> GetByBoardId(int boardId);
         Task<List<KanbanTask<UserLite>>> GetByBoardIdAndState(int boardId, KanbanTaskStates state);
     }

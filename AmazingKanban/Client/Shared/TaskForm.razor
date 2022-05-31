@@ -19,7 +19,15 @@
                         }
                     </div>
                     <div class="col-12 d-md-block col-md-4">
-                        <InputText id="title" @bind-Value="OpenedTask.Title" class="form-control" diabled="@isDisabled" placeholder="Title"></InputText>
+                        @if (isDisabled)
+                        {
+                            <InputText id="title" @bind-Value="OpenedTask.Title" class="form-control" disabled placeholder="Title"></InputText>
+                        }
+                        else
+                        {
+                            <InputText id="title" @bind-Value="OpenedTask.Title" class="form-control" placeholder="Title"></InputText>
+                        }
+                        
                         <ValidationMessage For="@(() => OpenedTask.Title)" />
                     </div>
                     <div class="col-12 d-md-block col-md-5">
@@ -27,7 +35,7 @@
                             @if (isNewTask)
                             {
                                 <button type="submit" class="btn btn-primary">Create</button>
-                                <button class="btn btn-primary">Cancel</button>
+                                <a class="btn btn-primary" @onclick="ModalInstance.CloseAsync">Cancel</a>
                             }
                             else
                             {
@@ -62,7 +70,7 @@
                                     <div class="col-12">Description:</div>
                                 </div>
                                 <div class="row">
-                                    <InputTextArea id="description" @bind-Value="OpenedTask.Description" diabled="@isDisabled" style="height: 15em" placeholder="Description..."></InputTextArea>
+                                    <InputTextArea id="description" @bind-Value="OpenedTask.Description" style="height: 15em" placeholder="Description..."></InputTextArea>
                                 </div>
                             </div>
                             <div class="col-12 col-lg-5 offset-lg-1">
@@ -170,6 +178,7 @@
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int BoardId { get; set; }
     [Parameter] public int TaskId { get; set; } = 0;
+    [Parameter]public BoardRoles UserRole { get; set; }
     KanbanTask<UserLite> OpenedTask { get; set; } = new KanbanTask<UserLite>
         {
             CreatedBy = new UserLite(),
@@ -192,8 +201,16 @@
             OpenedTask.CreatedBy = CurrentUserAccess.User;
             return;
         }
+        var currenTask = await TaskService.GetById(TaskId);
 
-
+        if(currenTask is null)
+        {
+            ToastService.ShowError("Error while getting task data");
+            await ModalInstance.CloseAsync();
+            return;
+        }
+        OpenedTask = currenTask;
+        Console.WriteLine(isDisabled);
 
     }
 
@@ -227,6 +244,7 @@
     {
         OpenedTask.CreatedOn = DateTime.Now;
         OpenedTask.State = KanbanTaskStates.New;
+        OpenedTask.BoardId = BoardId;
         await TaskService.Add(OpenedTask);
         await ModalInstance.CloseAsync();
     }

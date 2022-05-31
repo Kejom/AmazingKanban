@@ -31,7 +31,6 @@ namespace AmazingKanban.Server.Controllers
             try
             {
                 var boards = new List<Board>();
-
                 var isAdmin = User.IsInRole(UserRoles.Admin.ToString());
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
