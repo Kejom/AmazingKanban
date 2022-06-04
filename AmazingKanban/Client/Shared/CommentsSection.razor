@@ -1,0 +1,66 @@
+﻿@inject ICommentService CommentService
+@inject IUserUtility UserUtility
+
+<div class="container">
+    @foreach(var comment in Comments)
+    {
+        <EditForm Model="comment">
+        <div class="row mb-4 input-group p-3" style="background-color:lightgray; border-radius: 25px">
+            <div class="col-3">
+                <div class="row">
+                    <span class="input-group-text">
+                    @(comment.CreatedBy is null ? "Unknown User" : comment.CreatedBy.Email)
+                    </span>
+                    </div>
+                <div class="row">
+                    <InputDateTime class="form-control" @bind-Value="comment.CreatedOn" disabled></InputDateTime>
+                </div>
+                
+            </div>
+            <div class="col-8">
+                <InputTextArea @bind-Value="comment.CommentText" class="form-input" style="width:100%; height:100%" disabled></InputTextArea>
+            </div>
+        </div>
+        </EditForm>
+    }
+    <EditForm Model="NewComment" OnValidSubmit="SubmitComment">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <div class="row mb-2 input-group p-3" style="background-color:lightskyblue; border-radius: 25px">
+            <div class="col-9">
+                <InputTextArea class="form-control" @bind-Value="NewComment.CommentText" style="width:100%"></InputTextArea>
+            </div>
+            <div class="col-3">
+                <button class="btn btn-primary" type="submit">Add Comment</button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+
+@code {
+    [Parameter] public int TaskId { get; set; }
+    [Parameter] public int BoardId { get; set; }
+    public List<TaskComment<UserLite>> Comments { get; set; } = new List<TaskComment<UserLite>>();
+    public TaskComment<UserLite> NewComment { get; set; } = new TaskComment<UserLite>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Comments = await CommentService.GetByTaskId(TaskId);
+        NewComment.CreatedById = await UserUtility.GetCurrentUserId();
+    }
+
+    async Task SubmitComment()
+    {
+        NewComment.CreatedOn = DateTime.Now;
+        NewComment.TaskId = TaskId;
+        NewComment.BoardId = BoardId;
+
+        var result = await CommentService.AddComment(NewComment);
+
+        if (result <= 0)
+            return;
+
+        Comments = await CommentService.GetByTaskId(TaskId);
+        NewComment = new TaskComment<UserLite>();
+    }
+}

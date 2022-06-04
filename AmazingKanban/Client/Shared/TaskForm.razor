@@ -7,10 +7,10 @@
 
 @if (OpenedTask is not null)
 {
-    <div class="container" style="min-width: 80em">
-        <EditForm Model="OpenedTask" OnValidSubmit="@Submit">
-            <DataAnnotationsValidator></DataAnnotationsValidator>
-            <div class="card">
+    <div class="container" style="min-width: 80em; height: 50em; overflow: auto;">
+        <div class="card">
+            <EditForm Model="OpenedTask" OnValidSubmit="@Submit">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
                 <div class="card-header bg-dark text-light m-lg-0 row container">
                     <div class="col-12 d-none d-md-block col-md-3 pb-1">
                         @if (OpenedTask.Id > 0)
@@ -27,7 +27,7 @@
                         {
                             <InputText id="title" @bind-Value="OpenedTask.Title" class="form-control" placeholder="Title"></InputText>
                         }
-                        
+
                         <ValidationMessage For="@(() => OpenedTask.Title)" />
                     </div>
                     <div class="col-12 d-md-block col-md-5">
@@ -56,7 +56,21 @@
                                 </div>
                                 <div class="row mb-2 input-group">
                                     <div class="col-5">Task State:</div>
-                                    <div class="col-7"><input type="text" class="form-control" value="@OpenedTask.State.GetDisplayName()" disabled /></div>
+                                    @if (isNewTask)
+                                    {
+                                        <div class="col-7"><input type="text" class="form-control" value="@OpenedTask.State.GetDisplayName()" disabled /></div>
+                                    }
+                                    else
+                                    {
+                                        <div class="col-7">
+                                        <InputSelect @bind-Value="OpenedTask.State" class="form-control">
+                                            @foreach (KanbanTaskStates state in Enum.GetValues(typeof(KanbanTaskStates)))
+                                    {
+                                        <option value="@state">@state.GetDisplayName()</option>
+                                    }
+                                </InputSelect>
+                                </div>
+                                    }
                                 </div>
                                 <div class="row mb-2 input-group">
                                     <div class="col-5">Priority</div>
@@ -168,8 +182,12 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </EditForm>
+            </EditForm>
+            @if (!isNewTask)
+            {
+                <CommentsSection TaskId="TaskId" BoardId="BoardId" />
+            }
+        </div>
     </div>
 }
 
@@ -178,7 +196,7 @@
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int BoardId { get; set; }
     [Parameter] public int TaskId { get; set; } = 0;
-    [Parameter]public BoardRoles UserRole { get; set; }
+    [Parameter] public BoardRoles UserRole { get; set; }
     KanbanTask<UserLite> OpenedTask { get; set; } = new KanbanTask<UserLite>
         {
             CreatedBy = new UserLite(),
@@ -203,7 +221,7 @@
         }
         var currenTask = await TaskService.GetById(TaskId);
 
-        if(currenTask is null)
+        if (currenTask is null)
         {
             ToastService.ShowError("Error while getting task data");
             await ModalInstance.CloseAsync();

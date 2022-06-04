@@ -100,6 +100,7 @@ namespace AmazingKanban.Client.Services
             {
                 await _restApiClient.PutAsync<KanbanTask<UserLite>>("api/tasks", task);
                 _toastService.ShowSuccess("Task Updated!");
+                await LoadTasksAsync(task.BoardId);
             }
             catch (Exception e)
             {

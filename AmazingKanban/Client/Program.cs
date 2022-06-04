@@ -18,6 +18,7 @@ builder.Services.AddScoped<IBoardService, BoardService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddScoped<IBoardAccessService, BoardAccessService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<ICommentService, CommentService>();
 builder.Services.AddScoped<IUserUtility, UserUtility>();
 builder.Services.AddBlazoredModal();
 builder.Services.AddBlazoredToast();

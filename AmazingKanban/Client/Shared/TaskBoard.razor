@@ -45,4 +45,9 @@
         TaskService.OnChange += StateHasChanged;
         await TaskService.LoadTasksAsync(BoardId);
     }
+
+    public void Dispose()
+    {
+        TaskService.OnChange -= StateHasChanged;
+    }
 }
