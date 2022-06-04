@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using AmazingKanban.Server.Repositories;
 using AmazingKanban.Server.Factories;
+using AmazingKanban.Server.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +42,7 @@ builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IKanbanTaskRepository, KanbanTaskRepository>();
 builder.Services.AddTransient<ITaskCommentRepository, TaskCommentRepository>();
 builder.Services.AddTransient<IModelFactory, ModelFactory>();
+builder.Services.AddTransient<IUserValidationHelper, UserValidationHelper>();
 
 var app = builder.Build();
 

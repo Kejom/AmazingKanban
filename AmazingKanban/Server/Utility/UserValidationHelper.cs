@@ -4,7 +4,7 @@ using System.Security.Claims;
 
 namespace AmazingKanban.Server.Utility
 {
-    public class UserValidationHelper
+    public class UserValidationHelper : IUserValidationHelper
     {
         private readonly IBoardAccessRepository _boardAccessRepository;
 

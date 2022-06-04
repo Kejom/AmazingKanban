@@ -11,6 +11,7 @@ namespace AmazingKanban.Client.Services
         Task LoadTasksAsync(int boardId);
         Task<KanbanTask<UserLite>?> GetById(int taskId);
         Task Add(KanbanTask<UserLite> task);
+        Task Update(KanbanTask<UserLite> task);
         Task<List<KanbanTask<UserLite>>> GetByBoardId(int boardId);
         Task<List<KanbanTask<UserLite>>> GetByBoardIdAndState(int boardId, KanbanTaskStates state);
     }

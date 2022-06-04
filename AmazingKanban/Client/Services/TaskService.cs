@@ -94,6 +94,19 @@ namespace AmazingKanban.Client.Services
             }
         }
 
+        public async Task Update(KanbanTask<UserLite> task)
+        {
+            try
+            {
+                await _restApiClient.PutAsync<KanbanTask<UserLite>>("api/tasks", task);
+                _toastService.ShowSuccess("Task Updated!");
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+            }
+        }
+
         void TasksChanged() => OnChange.Invoke();
 
         private void InitializeTaskDict()

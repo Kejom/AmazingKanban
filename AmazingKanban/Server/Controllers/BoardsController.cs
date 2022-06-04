@@ -1,5 +1,6 @@
 ﻿using AmazingKanban.Server.Factories;
 using AmazingKanban.Server.Repositories;
+using AmazingKanban.Server.Utility;
 using AmazingKanban.Shared;
 using AmazingKanban.Shared.Models;
 using AmazingKanban.Shared.ViewModels;
@@ -18,11 +19,13 @@ namespace AmazingKanban.Server.Controllers
         private readonly IBoardRepository _boardRepository;
         private readonly IBoardAccessRepository _boardAccessRepository;
         private readonly IModelFactory _modelFactory;
-        public BoardsController(IBoardRepository boardRepository, IBoardAccessRepository boardAccessRepository, IModelFactory modelFactory)
+        private readonly IUserValidationHelper _validationHelper;
+        public BoardsController(IBoardRepository boardRepository, IBoardAccessRepository boardAccessRepository, IModelFactory modelFactory, IUserValidationHelper validationHelper)
         {
             _boardRepository = boardRepository;
             _boardAccessRepository = boardAccessRepository;
             _modelFactory = modelFactory;
+            _validationHelper = validationHelper;
         }
 
         [HttpGet]
@@ -51,6 +54,9 @@ namespace AmazingKanban.Server.Controllers
         [HttpGet("{boardId}")]
         public async Task<IActionResult> GetById(int boardId)
         {
+            var canAccess = await _validationHelper.ValidateBoardAccess(boardId, User, BoardRoles.User);
+            if (!canAccess)
+                return Forbid("access forbidden");
             try
             {
                 var board = await _boardRepository.GetById(boardId);
@@ -103,6 +109,10 @@ namespace AmazingKanban.Server.Controllers
         [HttpPut]
         public async Task<IActionResult> Put(Board board)
         {
+            var canAccess = await _validationHelper.ValidateBoardAccess(board.Id, User, BoardRoles.Admin);
+            if (!canAccess)
+                return Forbid("access forbidden");
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             try

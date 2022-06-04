@@ -1,5 +1,6 @@
 ﻿using AmazingKanban.Server.Factories;
 using AmazingKanban.Server.Repositories;
+using AmazingKanban.Server.Utility;
 using AmazingKanban.Shared;
 using AmazingKanban.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -15,11 +16,13 @@ namespace AmazingKanban.Server.Controllers
     {
         private readonly IKanbanTaskRepository _taskRepository;
         private readonly IModelFactory _modelFactory;
+        private readonly IUserValidationHelper _validationHelper;
 
-        public TasksController(IKanbanTaskRepository taskRepository, IModelFactory modelFactory)
+        public TasksController(IKanbanTaskRepository taskRepository, IModelFactory modelFactory, IUserValidationHelper validationHelper)
         {
             _taskRepository = taskRepository;
             _modelFactory = modelFactory;
+            _validationHelper = validationHelper;
         }
 
         [HttpGet]
@@ -45,6 +48,12 @@ namespace AmazingKanban.Server.Controllers
             try
             {
                 var task = await _taskRepository.GetById(taskId);
+
+                var canAccess = await _validationHelper.ValidateBoardAccess(task.BoardId, User, BoardRoles.User);
+
+                if (!canAccess)
+                    return Forbid("access forbidden");
+
                 var result = _modelFactory.Convert(task);
                 return Ok(result);
             }
@@ -65,6 +74,11 @@ namespace AmazingKanban.Server.Controllers
                 return BadRequest(ModelState);
             try
             {
+                var canAccess = await _validationHelper.ValidateBoardAccess(kanbanTask.BoardId, User, BoardRoles.User);
+
+                if (!canAccess)
+                    return Forbid("access forbidden");
+
                 var taskToAdd = _modelFactory.Convert(kanbanTask);
                 await _taskRepository.Add(taskToAdd);
                 return Ok(taskToAdd.Id);
@@ -82,6 +96,11 @@ namespace AmazingKanban.Server.Controllers
                 return BadRequest(ModelState);
             try
             {
+                var canAccess = await _validationHelper.ValidateBoardAccess(kanbanTask.BoardId, User, BoardRoles.Developer);
+
+                if (!canAccess)
+                    return Forbid("access forbidden");
+
                 var taskToUpdate = _modelFactory.Convert(kanbanTask);
                 await _taskRepository.Update(taskToUpdate);
                 return Ok();

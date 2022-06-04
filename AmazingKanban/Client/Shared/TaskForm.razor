@@ -8,7 +8,7 @@
 @if (OpenedTask is not null)
 {
     <div class="container" style="min-width: 80em">
-        <EditForm Model="OpenedTask" OnValidSubmit="@SubmitCreate">
+        <EditForm Model="OpenedTask" OnValidSubmit="@Submit">
             <DataAnnotationsValidator></DataAnnotationsValidator>
             <div class="card">
                 <div class="card-header bg-dark text-light m-lg-0 row container">
@@ -39,7 +39,7 @@
                             }
                             else
                             {
-                                <button class="btn btn-primary">Update</button>
+                                <button type="submit" class="btn btn-primary">Update</button>
                             }
                         </div>
                     </div>
@@ -239,6 +239,17 @@
     {
         return await UserService.GetByBoardIdAndRole(BoardId, BoardRoles.Developer, filter);
     }
+    async Task Submit()
+    {
+        SetAssignedUsers();
+
+        if (isNewTask)
+            await SubmitCreate();
+        else
+            await SubmitUpdate();
+
+        await ModalInstance.CloseAsync();
+    }
 
     async Task SubmitCreate()
     {
@@ -246,6 +257,18 @@
         OpenedTask.State = KanbanTaskStates.New;
         OpenedTask.BoardId = BoardId;
         await TaskService.Add(OpenedTask);
-        await ModalInstance.CloseAsync();
+
+    }
+
+    async Task SubmitUpdate()
+    {
+        OpenedTask.UpdatedOn = DateTime.Now;
+        await TaskService.Update(OpenedTask);
+    }
+
+    void SetAssignedUsers()
+    {
+        OpenedTask.AssignedToId = OpenedTask.AssignedTo is not null ? OpenedTask.AssignedTo.Id : null;
+        OpenedTask.ValidatorId = OpenedTask.Validator is not null ? OpenedTask.Validator.Id : null;
     }
 }

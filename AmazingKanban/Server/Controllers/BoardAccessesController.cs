@@ -1,5 +1,6 @@
 ﻿using AmazingKanban.Server.Factories;
 using AmazingKanban.Server.Repositories;
+using AmazingKanban.Server.Utility;
 using AmazingKanban.Shared;
 using AmazingKanban.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -15,11 +16,13 @@ namespace AmazingKanban.Server.Controllers
     {
         private readonly IBoardAccessRepository _boardAccessRepository;
         private readonly IModelFactory _modelFactory;
+        private readonly IUserValidationHelper _validationHelper;
 
-        public BoardAccessesController(IBoardAccessRepository boardAccessRepository, IModelFactory modelFactory)
+        public BoardAccessesController(IBoardAccessRepository boardAccessRepository, IModelFactory modelFactory, IUserValidationHelper validationHelper)
         {
             _boardAccessRepository = boardAccessRepository;
             _modelFactory = modelFactory;
+            _validationHelper = validationHelper;
         }
 
         [HttpGet]
@@ -46,6 +49,11 @@ namespace AmazingKanban.Server.Controllers
 
             try
             {
+                var canAccess = await _validationHelper.ValidateBoardAccess(access.BoardId, User, BoardRoles.Admin);
+
+                if (!canAccess)
+                    return Forbid("access forbidden");
+
                 var accessToAdd = _modelFactory.Convert(access);
                 await _boardAccessRepository.Add(accessToAdd);
                 return Ok(accessToAdd.Id);
@@ -64,6 +72,11 @@ namespace AmazingKanban.Server.Controllers
 
             try
             {
+                var canAccess = await _validationHelper.ValidateBoardAccess(access.BoardId, User, BoardRoles.Admin);
+
+                if (!canAccess)
+                    return Forbid("access forbidden");
+
                 var accessToUpdate = _modelFactory.Convert(access);
                 await _boardAccessRepository.Update(accessToUpdate);
                 return Ok();
@@ -83,6 +96,13 @@ namespace AmazingKanban.Server.Controllers
         {
             try
             {
+                var accessToDelete = await _boardAccessRepository.GetById(id);
+
+                var canAccess = await _validationHelper.ValidateBoardAccess(accessToDelete.BoardId, User, BoardRoles.Admin);
+
+                if (!canAccess)
+                    return Forbid("access forbidden");
+
                 await _boardAccessRepository.Delete(id);
                 return Ok();
             }
@@ -134,39 +154,6 @@ namespace AmazingKanban.Server.Controllers
                 var access = await _boardAccessRepository.GetByUserAndBoardId(userId, boardId);
                 var result = _modelFactory.Convert(access);
                 return Ok(result);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, e.Message);
-            }
-        }
-        //do naprawy
-        [HttpPut("board/{boardId}")]
-        public async Task<IActionResult> UpdateBoardAccesses(int boardId, List<BoardAccess<UserLite>> accesses)
-        {
-            try
-            {
-                var newAccesses = accesses.Select((a) => _modelFactory.Convert(a)).ToList();
-                var newAccessesIds = newAccesses.Select(a => a.Id).ToHashSet();
-                var currentAccessesIds = (await _boardAccessRepository.GetByBoardId(boardId)).Select(a => a.Id).ToHashSet();
-                var accessesToAdd = newAccesses.Where(a => !currentAccessesIds.Contains(a.Id));
-                var accessesToRemove = currentAccessesIds.Where(a => !newAccessesIds.Contains(a));
-                var accessesToUpdate = newAccesses.Where(a => currentAccessesIds.Contains(a.Id));
-
-                foreach (var access in accessesToAdd)
-                    await _boardAccessRepository.Add(access);
-
-                foreach (var accessId in accessesToRemove)
-                    await _boardAccessRepository.Delete(accessId);
-
-                foreach (var access in accessesToUpdate)
-                    await _boardAccessRepository.Update(access);
-
-                return Ok();
-            }
-            catch(ArgumentException e)
-            {
-                return BadRequest(e.Message);
             }
             catch (Exception e)
             {

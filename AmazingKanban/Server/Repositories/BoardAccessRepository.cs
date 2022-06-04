@@ -18,7 +18,15 @@ namespace AmazingKanban.Server.Repositories
         {
             return await _dbContext.BoardAccesses.Include(a => a.User).ToListAsync();
         }
+        public async Task<BoardAccess<ApplicationUser>> GetById(int id)
+        {
+            var result = await _dbContext.BoardAccesses.FirstOrDefaultAsync(a => a.Id == id);
 
+            if(result is null)
+                throw new ArgumentException("Board Access with given Id doesnt exist");
+
+            return result;
+        }
         public async Task<List<BoardAccess<ApplicationUser>>> GetByBoardId(int boardId)
         {
             return await _dbContext.BoardAccesses.Where(a => a.BoardId == boardId).Include(a => a.User).ToListAsync();
