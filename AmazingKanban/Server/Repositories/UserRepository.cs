@@ -25,7 +25,7 @@ namespace AmazingKanban.Server.Repositories
                 u.FirstName.ToLower().Contains(filter.ToLower()) ||
                 u.LastName.ToLower().Contains(filter.ToLower()))
                 .ToListAsync();
-        }
+        }       
 
         public async Task<ApplicationUser> GetUserByid(string id)
         {
@@ -47,6 +47,11 @@ namespace AmazingKanban.Server.Repositories
                                 u.LastName.ToLower().Contains(filter.ToLower()));
 
             return await result.ToListAsync();
+        }
+
+        public async Task<int> GetCount()
+        {
+            return await _dbContext.Users.CountAsync();
         }
     }
 }

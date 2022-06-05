@@ -15,5 +15,6 @@ namespace AmazingKanban.Server.Repositories
         Task<List<KanbanTask<ApplicationUser>>> GetByCreatedById(string createdById);
         Task<List<KanbanTask<ApplicationUser>>> GetByValidatorId(string validatorId);
         Task Update(KanbanTask<ApplicationUser> task);
+        Task<int> GetCount();
     }
 }

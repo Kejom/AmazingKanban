@@ -9,7 +9,7 @@
             <h2 class="text-primary">Boards</h2>
         </div>
         <div class="col-6">
-            <button @onclick="@(() => ShowBoardForm())" class="btn btn-primary float-end" >Create New Board</button>
+            <button @onclick="@(() => ShowBoardForm())" class="btn btn-primary float-end">Create New Board</button>
         </div>
     </div>
     <br /><br />
@@ -18,10 +18,10 @@
 
     @if (BoardService.Boards.Count > 0)
     {
-            <div class="form-group">
-        <input class="form-control" type="text" placeholder="Filter..." @bind="Filter" @bind:event="oninput" />
-    </div>
-    <br/>
+        <div class="form-group">
+            <input class="form-control" type="text" placeholder="Filter..." @bind="Filter" @bind:event="oninput" />
+        </div>
+        <br />
         <table class="table table-bordered table-striped" style="width:100%">
             <thead>
                 <tr>
@@ -35,26 +35,30 @@
                 </tr>
             </thead>
             <tbody>
-            @foreach (var board in BoardService.Boards)
-            {
+                @foreach (var board in BoardService.Boards)
+                {
                     if (!IsVisible(board))
                         continue;
                     <tr>
-                    <td width="30%">@board.Name</td>
-                    <td width="40%">@board.Description</td>
-                    <td width="30%" class="text-center">
-                        <div class="w-75 btn-group">
-                        <a class="btn btn-primary mx-2" href="@($"boards/{board.Id}")">
-                            Open
-                        </a>
-                        </div>
-                    </td>
-                </tr>
-            }
+                        <td width="30%">@board.Name</td>
+                        <td width="40%">
+                            @GetShortDescription(board.Description)
+                        </td>
+                        <td width="30%" class="text-center">
+                            <div class="w-75 btn-group">
+                                <a class="btn btn-primary" @onclick="()=> ShowBoardInfo(board)"><span class="oi oi-info"></span></a>
+                                <a class="btn btn-primary mx-2" href="@($"boards/{board.Id}")">
+                                    Open
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     }
-    else{
+    else
+    {
         <p>No Boards to display</p>
     }
 </div>
@@ -76,6 +80,12 @@
     {
         Modal.Show<BoardForm>("Create Board");
     }
+    public void ShowBoardInfo(Board board)
+    {
+        var parameters = new ModalParameters();
+        parameters.Add("Board", board);
+        Modal.Show<BoardInfo>("Board Info", parameters);
+    }
     public bool IsVisible(Board? board)
     {
         if (board is null)
@@ -88,5 +98,12 @@
             return true;
 
         return false;
+    }
+
+    public string GetShortDescription(string description)
+    {
+        if (description.Length < 50)
+            return description;
+        return description.Substring(0, 45) + "(...)";
     }
 }

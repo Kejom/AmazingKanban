@@ -1,8 +1,8 @@
 ﻿<div class="pb-4">
     <div class="card bg-white rounded shadow-sm" style="border:1px solid #222">
         <div class="card-body px-3 pt-3 pb-1 row">
-            <div class="col-8"><label class="float-left">@KanbanTask.Title</label></div>
-            <div class="col-4"><label class="float-right"><span class="text-info h5">Id: @KanbanTask.Id</span></label> </div>
+            <div><label><span class="text-info h5">Id: @KanbanTask.Id</span></label> </div>
+            <div><label>@KanbanTask.Title</label></div>
         </div>
         <div class="card-body p-1 px-3 row">
             <div class="col-10">
@@ -11,6 +11,14 @@
             <div class="col-2 border-0">
             </div>
             <div class="col-12 pt-2" style="font-size:13px; text-align:justify">
+                @if (KanbanTask.AssignedTo is not null)
+                {
+                    <div class="mb-2"><label>@KanbanTask.AssignedTo.Email</label></div>
+                }
+                @if (KanbanTask.Validator is not null)
+                {
+                    <div class="mb-2"><label> @KanbanTask.Validator.Email</label></div>
+                }
             </div>
             <div class="col-12 p-1">
                 <button class="btn btn-dark form-control btn-sm p-2" style="height:40px" @onclick="OpenTaskModal">Task Details</button>
@@ -21,13 +29,13 @@
 @code {
     [CascadingParameter] public IModalService Modal { get; set; }
     [Parameter] public KanbanTask<UserLite> KanbanTask { get; set; } = new KanbanTask<UserLite>();
-    [Parameter]public BoardRoles UserRole { get; set; }
+    [Parameter] public BoardRoles UserRole { get; set; }
 
     void OpenTaskModal()
     {
         var parameters = new ModalParameters();
         parameters.Add("BoardId", KanbanTask.BoardId);
         parameters.Add("TaskId", KanbanTask.Id);
-        Modal.Show<TaskForm>("Task Details",parameters);
+        Modal.Show<TaskForm>("Task Details", parameters);
     }
 }

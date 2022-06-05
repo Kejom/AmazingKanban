@@ -9,5 +9,6 @@ namespace AmazingKanban.Server.Repositories
         Task<List<ApplicationUser>> GetUsers(string filter = "");
         Task<ApplicationUser> GetUserByid(string id);
         Task<List<ApplicationUser>> GetByBoardIdAndRole(int boardId, BoardRoles role, string filter = "");
+        Task<int> GetCount();
     }
 }

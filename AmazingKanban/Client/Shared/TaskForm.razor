@@ -217,12 +217,12 @@
         if (TaskId == 0)
         {
             isNewTask = true;
+            canEdit = true;
             OpenedTask.CreatedById = CurrentUserAccess.UserId;
             OpenedTask.CreatedBy = CurrentUserAccess.User;
             return;
         }
         var currenTask = await TaskService.GetById(TaskId);
-        await CanEditBoard();
         if (currenTask is null)
         {
             ToastService.ShowError("Error while getting task data");
@@ -231,6 +231,7 @@
         }
         isClosed = currenTask.State == KanbanTaskStates.Done;
         OpenedTask = currenTask;
+        await CanEditBoard();
     }
 
     async Task CheckAccess()

@@ -60,5 +60,10 @@ namespace AmazingKanban.Server.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task<int> GetCount()
+        {
+           return await _dbContext.Boards.CountAsync();
+        }
+
     }
 }

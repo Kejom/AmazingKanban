@@ -17,6 +17,6 @@ namespace AmazingKanban.Shared.Models
         public ApplicationUser? Owner { get; set; }
         [Required(ErrorMessage ="Board Name is required")]
         public string? Name { get; set; }
-        public string? Description { get; set; }
+        public string? Description { get; set; } = string.Empty;
     }
 }

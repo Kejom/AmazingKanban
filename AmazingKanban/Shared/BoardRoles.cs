@@ -8,9 +8,9 @@ namespace AmazingKanban.Shared
 {
     public enum BoardRoles
     {
+        NoAccess,
         User,
         Developer,
-        Admin,
-        NoAccess
+        Admin
     }
 }

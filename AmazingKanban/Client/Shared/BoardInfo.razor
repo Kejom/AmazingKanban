@@ -1,0 +1,23 @@
+﻿@if(Board is not null)
+{
+    <div style="width:30em">
+    <div class="border p-3" style="width:90%;margin:auto">
+        <EditForm Model="Board">
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+
+            <div class="form-group" style="margin:5px">
+                <div style="display:flex; justify-content:center"><label for="name" class="required">Board Name</label></div>
+                <InputText id="name" @bind-Value="Board.Name" class="form-control" disabled></InputText>
+            </div>
+            <div class="form-group" style="margin:5px">
+                <div style="display:flex; justify-content:center"><label for="name" class="required" style="text-align:center">Board Description</label></div>
+                <InputTextArea id="description" @bind-Value="Board.Description" class="form-control" style="height:20em" disabled></InputTextArea>
+            </div>
+            </EditForm>
+            </div>
+            </div>
+}
+
+@code {
+    [Parameter] public Board? Board { get; set; }
+}

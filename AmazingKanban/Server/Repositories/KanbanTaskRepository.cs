@@ -108,5 +108,10 @@ namespace AmazingKanban.Server.Repositories
             _dbcontext.KanbanTasks.Remove(taskToRemove);
             await _dbcontext.SaveChangesAsync();
         }
+
+        public async Task<int> GetCount()
+        {
+            return await _dbcontext.KanbanTasks.CountAsync();
+        }
     }
 }

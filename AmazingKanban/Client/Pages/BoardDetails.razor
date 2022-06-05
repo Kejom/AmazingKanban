@@ -17,23 +17,18 @@
                 <button class="btn btn-primary" style="width:100%" @onclick="ShowCreateTaskModal"><span class="oi oi-task"></span> Create Task</button>
             </div>
             <div class="col-3 text-right">
-                
             </div>
             <div class="col-3 text-right">
-                @if(UserRole == BoardRoles.Admin)
-                {
-                    <button class="btn btn-primary" style="width:100%"><span class="oi oi-pencil"></span> Edit Board</button>
-                }                
             </div>
             <div class="col-3 text-right">
-                @if(UserRole == BoardRoles.Admin)
+                @if (UserRole == BoardRoles.Admin)
                 {
                     <button class="btn btn-primary" style="width:100%" @onclick="ShowManageUsersModal"><span class="oi oi-people"></span> Manage Users</button>
-                }               
+                }
             </div>
         </div>
         <br />
-        <TaskBoard BoardId="Board.Id" UserRole="UserRole"/>
+        <TaskBoard BoardId="Board.Id" UserRole="UserRole" />
 
     }
     else
@@ -62,9 +57,9 @@
             BoardAccesses = await AccessService.GetByBoardId(Int32.Parse(Id));
             UserRole = await GetCurrentUserAccess();
 
-            if(UserRole == BoardRoles.NoAccess)
+            if (UserRole == BoardRoles.NoAccess)
             {
-                ToastService.ShowWarning("You dont have access to this board", heading:"No Access");
+                ToastService.ShowWarning("You dont have access to this board", heading: "No Access");
                 NavigationManager.NavigateTo("board");
             }
         }

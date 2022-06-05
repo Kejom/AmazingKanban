@@ -11,5 +11,6 @@ namespace AmazingKanban.Server.Repositories
         Task<List<Board>> GetByOwnerId(string userId);
         Task<List<Board>> GetByUserId(string userId);
         Task Update(Board board);
+        Task<int> GetCount();
     }
 }
