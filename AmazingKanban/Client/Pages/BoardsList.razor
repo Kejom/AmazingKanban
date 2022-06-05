@@ -35,10 +35,10 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var board in BoardService.Boards)
-                {
-                    if (!IsVisible(board))
-                        continue;
+
+                <Virtualize Items="@BoardService.Boards" Context="board">
+                    @if (IsVisible(board))
+                    {
                     <tr>
                         <td width="30%">@board.Name</td>
                         <td width="40%">
@@ -53,7 +53,8 @@
                             </div>
                         </td>
                     </tr>
-                }
+                    }
+                </Virtualize>
             </tbody>
         </table>
     }

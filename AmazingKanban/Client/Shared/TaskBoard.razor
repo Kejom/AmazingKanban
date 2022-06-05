@@ -2,6 +2,9 @@
 
 <div class="container">
     <div class="card">
+        <div class="form-group">
+            <input class="form-control" type="text" placeholder="Filter..." @bind="Filter" @bind:event="oninput" />
+        </div>
         <div class="row pt-4">
             <div class="col-1"></div>
             <div class="col-2 text-center">
@@ -23,22 +26,27 @@
         </div>
         <div class="row pt-4">
             <div class=col-1></div>
-            @foreach(var tasks in TaskService.Tasks)
+
+            @foreach (KanbanTaskStates state in Enum.GetValues(typeof(KanbanTaskStates)))
             {
                 <div class="col-2">
-                    @foreach(var task in tasks.Value)
+                    <Virtualize Items="@TaskService.Tasks[state]" Context="task">
+
+                        @if (IsVisible(task))
                     {
-                        <TaskCard KanbanTask="task" UserRole="UserRole"/>
+                        <TaskCard KanbanTask="task" UserRole="UserRole" />
                     }
-                </div>
+                </Virtualize>
+            </div>
             }
         </div>
     </div>
 </div>
 
 @code {
-    [Parameter]public int BoardId{ get; set; }
-    [Parameter]public BoardRoles UserRole { get; set; }
+    [Parameter] public int BoardId { get; set; }
+    [Parameter] public BoardRoles UserRole { get; set; }
+    public string? Filter { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,5 +57,25 @@
     public void Dispose()
     {
         TaskService.OnChange -= StateHasChanged;
+    }
+
+    public bool IsVisible(KanbanTask<UserLite> task)
+    {
+        if (string.IsNullOrEmpty(Filter))
+            return true;
+
+        if (task.Title.Contains(Filter, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (task.CreatedBy.Email.Contains(Filter, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (task.AssignedTo is not null && task.AssignedTo.Email.Contains(Filter, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (task.Validator is not null && task.Validator.Email.Contains(Filter, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
     }
 }
