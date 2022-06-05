@@ -28,7 +28,6 @@
         var parameters = new ModalParameters();
         parameters.Add("BoardId", KanbanTask.BoardId);
         parameters.Add("TaskId", KanbanTask.Id);
-        parameters.Add("UserRole", UserRole);
         Modal.Show<TaskForm>("Task Details",parameters);
     }
 }

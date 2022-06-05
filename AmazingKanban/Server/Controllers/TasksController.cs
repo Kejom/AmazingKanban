@@ -6,6 +6,7 @@ using AmazingKanban.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AmazingKanban.Server.Controllers
 {
@@ -96,7 +97,9 @@ namespace AmazingKanban.Server.Controllers
                 return BadRequest(ModelState);
             try
             {
-                var canAccess = await _validationHelper.ValidateBoardAccess(kanbanTask.BoardId, User, BoardRoles.Developer);
+                var hasAccess = await _validationHelper.ValidateBoardAccess(kanbanTask.BoardId, User, BoardRoles.Developer);
+                var isOwner = kanbanTask.CreatedById == User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var canAccess = hasAccess || isOwner;
 
                 if (!canAccess)
                     return Forbid("access forbidden");

@@ -82,7 +82,6 @@
     {
         var parameters = new ModalParameters();
         parameters.Add("BoardId", Int32.Parse(Id!));
-        parameters.Add("UserRole", UserRole);
         Modal.Show<TaskForm>("Create Task", parameters);
     }
 

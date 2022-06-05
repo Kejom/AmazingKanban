@@ -19,7 +19,7 @@
                         }
                     </div>
                     <div class="col-12 d-md-block col-md-4">
-                        @if (isDisabled)
+                        @if (!isNewTask)
                         {
                             <InputText id="title" @bind-Value="OpenedTask.Title" class="form-control" disabled placeholder="Title"></InputText>
                         }
@@ -63,19 +63,19 @@
                                     else
                                     {
                                         <div class="col-7">
-                                        <InputSelect @bind-Value="OpenedTask.State" class="form-control">
-                                            @foreach (KanbanTaskStates state in Enum.GetValues(typeof(KanbanTaskStates)))
-                                    {
-                                        <option value="@state">@state.GetDisplayName()</option>
-                                    }
-                                </InputSelect>
+                                            <InputSelect @bind-Value="OpenedTask.State" class="form-control" disabled="@(!canEdit)">
+                                                @foreach (KanbanTaskStates state in Enum.GetValues(typeof(KanbanTaskStates)))
+                                                {
+                                            <option value="@state">@state.GetDisplayName()</option>
+                                                }
+                                    </InputSelect>
                                 </div>
                                     }
                                 </div>
                                 <div class="row mb-2 input-group">
                                     <div class="col-5">Priority</div>
                                     <div class="col-7">
-                                        <InputNumber @bind-Value="OpenedTask.Priority" class="form-control"></InputNumber>
+                                        <InputNumber @bind-Value="OpenedTask.Priority" class="form-control" disabled="@(!canEdit || isClosed)"></InputNumber>
                                         <ValidationMessage For="@(() => OpenedTask.Priority)" />
                                     </div>
                                 </div>
@@ -84,7 +84,7 @@
                                     <div class="col-12">Description:</div>
                                 </div>
                                 <div class="row">
-                                    <InputTextArea id="description" @bind-Value="OpenedTask.Description" style="height: 15em" placeholder="Description..."></InputTextArea>
+                                    <InputTextArea id="description" @bind-Value="OpenedTask.Description" style="height: 15em" placeholder="Description..." disabled="@(!canEdit|| isClosed)"></InputTextArea>
                                 </div>
                             </div>
                             <div class="col-12 col-lg-5 offset-lg-1">
@@ -121,7 +121,8 @@
                                         <BlazoredTypeahead SearchMethod="@TypeAhead"
                                                        @bind-Value="@(OpenedTask.AssignedTo)"
                                                        placeholder="Search for user.."
-                                                       Debounce="500">
+                                                       Debounce="500"
+                                                       Disabled="!canEdit || isClosed">
                                             <SelectedTemplate Context="selectedContext">
                                                 @selectedContext.Email
                                             </SelectedTemplate>
@@ -142,7 +143,8 @@
                                         <BlazoredTypeahead SearchMethod="@TypeAhead"
                                                        @bind-Value="@(OpenedTask.Validator)"
                                                        placeholder="Search for user.."
-                                                       Debounce="500">
+                                                       Debounce="500"
+                                                       Disabled="!canEdit || isClosed">
                                             <SelectedTemplate Context="selectedContext">
                                                 @selectedContext.Email
                                             </SelectedTemplate>
@@ -196,7 +198,6 @@
     [CascadingParameter] BlazoredModalInstance ModalInstance { get; set; }
     [Parameter] public int BoardId { get; set; }
     [Parameter] public int TaskId { get; set; } = 0;
-    [Parameter] public BoardRoles UserRole { get; set; }
     KanbanTask<UserLite> OpenedTask { get; set; } = new KanbanTask<UserLite>
         {
             CreatedBy = new UserLite(),
@@ -207,7 +208,8 @@
         };
     BoardAccess<UserLite> CurrentUserAccess { get; set; } = new BoardAccess<UserLite>();
     bool isNewTask = false;
-    bool isDisabled => !isNewTask;
+    bool canEdit;
+    bool isClosed;
 
     protected override async Task OnInitializedAsync()
     {
@@ -220,16 +222,15 @@
             return;
         }
         var currenTask = await TaskService.GetById(TaskId);
-
+        await CanEditBoard();
         if (currenTask is null)
         {
             ToastService.ShowError("Error while getting task data");
             await ModalInstance.CloseAsync();
             return;
         }
+        isClosed = currenTask.State == KanbanTaskStates.Done;
         OpenedTask = currenTask;
-        Console.WriteLine(isDisabled);
-
     }
 
     async Task CheckAccess()
@@ -251,6 +252,12 @@
             NavManager.NavigateTo("boards");
         }
 
+    }
+    async Task CanEditBoard()
+    {
+        var userId = await UserUtility.GetCurrentUserId();
+        var isOwner = OpenedTask.CreatedById == userId;
+        canEdit = isOwner || CurrentUserAccess.Role >= BoardRoles.Developer;
     }
 
     async Task<IEnumerable<UserLite>> TypeAhead(string filter)
@@ -280,7 +287,17 @@
 
     async Task SubmitUpdate()
     {
+        if (!canEdit)
+        {
+            ToastService.ShowError("only task creator or developer can edit it");
+            return;
+        }
+
         OpenedTask.UpdatedOn = DateTime.Now;
+
+        if (!isClosed && OpenedTask.State == KanbanTaskStates.Done)
+            OpenedTask.ClosedOn = DateTime.Now;
+
         await TaskService.Update(OpenedTask);
     }
 
