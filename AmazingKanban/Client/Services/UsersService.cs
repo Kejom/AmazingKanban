@@ -39,6 +39,19 @@ namespace AmazingKanban.Client.Services
             }
         }
 
+        public async Task<List<UserVM>> GetAllAsVM()
+        {
+            try
+            {
+                return await _restClient.GetAsync<List<UserVM>>("api/users/admin");
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+                return new List<UserVM>();
+            }
+        }
+
         public async Task<UserLite?>GetById(string userId)
         {
             try
@@ -49,6 +62,36 @@ namespace AmazingKanban.Client.Services
             {
                 _toastService.ShowError(e.Message);
                 return null;
+            }
+        }
+
+        public async Task<bool> PromoteToAdmin(string userId)
+        {
+            try
+            {
+                await _restClient.PostAsync<bool, string>($"api/users/admin/promote/{userId}", userId);
+                _toastService.ShowSuccess("User role updated!");
+                return true;
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> DemoteAdmin(string userId)
+        {
+            try
+            {
+                await _restClient.PostAsync<bool, string>($"api/users/admin/demote/{userId}", userId);
+                _toastService.ShowSuccess("User role updated!");
+                return true;
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+                return false;
             }
         }
 

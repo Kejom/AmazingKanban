@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace AmazingKanban.Shared.ViewModels
 {
-    public class BoardUserVM
+    public class UserVM
     {
-        public UserLite User { get; set; } = new UserLite();
-        public BoardRoles? BoardRole { get; set; }
+        public UserLite User { get; set; }
+        public bool IsAdmin { get; set; }
     }
 }

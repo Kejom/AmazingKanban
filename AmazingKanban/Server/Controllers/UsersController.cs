@@ -5,7 +5,9 @@ using AmazingKanban.Shared.Models;
 using AmazingKanban.Shared.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AmazingKanban.Server.Controllers
 {
@@ -15,11 +17,13 @@ namespace AmazingKanban.Server.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
 
 
-        public UsersController(IUserRepository userRepository)
+        public UsersController(IUserRepository userRepository, UserManager<ApplicationUser> userManager)
         {
             _userRepository = userRepository;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -60,6 +64,65 @@ namespace AmazingKanban.Server.Controllers
                 var users = await _userRepository.GetByBoardIdAndRole(boardId, role, filter);
                 var result = users.Select(u => u.ConvertToUserLite()).ToList();
                 return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
+        [HttpGet("admin")]
+        [Authorize(Roles = nameof(UserRoles.Admin))]
+        public async Task<IActionResult> GetAllAdminView()
+        {
+            try
+            {
+                var users = await _userRepository.GetUsers();
+                var result = new List<UserVM>();
+
+                foreach (var user in users)
+                {
+                    result.Add(new UserVM
+                    {
+                        User = user.ConvertToUserLite(),
+                        IsAdmin = _userManager.IsInRoleAsync(user, nameof(UserRoles.Admin)).GetAwaiter().GetResult(),
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+
+        }
+
+        [HttpPost("admin/promote/{userId}")]
+        [Authorize(Roles = nameof(UserRoles.Admin))]
+        public async Task<IActionResult> PromoteToAdmin(string userId)
+        {
+            try
+            {
+                var user = await _userRepository.GetUserByid(userId);
+                await _userManager.AddToRoleAsync(user, nameof(UserRoles.Admin));
+                return Ok(true);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
+        [HttpPost("admin/demote/{userId}")]
+        [Authorize(Roles = nameof(UserRoles.Admin))]
+        public async Task<IActionResult> DemoteAdmin(string userId)
+        {
+            try
+            {
+                var user = await _userRepository.GetUserByid(userId);
+                await _userManager.RemoveFromRoleAsync(user, nameof(UserRoles.Admin));
+                return Ok(true);
             }
             catch (Exception e)
             {
