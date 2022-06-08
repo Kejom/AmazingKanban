@@ -11,6 +11,8 @@ namespace AmazingKanban.Client.Services
         Task<UserLite?> GetById(string userId);
         Task<bool> PromoteToAdmin(string userId);
         Task<bool> DemoteAdmin(string userId);
+        Task<bool> Lock(string userId);
+        Task<bool> Unlock(string userId);
         Task<IEnumerable<UserLite>> GetByBoardIdAndRole(int boardId, BoardRoles role, string filter);
     }
 }

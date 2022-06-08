@@ -49,6 +49,18 @@ namespace AmazingKanban.Server.Repositories
             return await result.ToListAsync();
         }
 
+        public async Task Unlock(string userId)
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if(user is null)
+                throw new ArgumentException("User with given Id doesnt exist");
+
+            user.LockoutEnd = null;
+            _dbContext.Users.Update(user);
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task<int> GetCount()
         {
             return await _dbContext.Users.CountAsync();

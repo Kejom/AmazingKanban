@@ -86,6 +86,7 @@ namespace AmazingKanban.Server.Controllers
                     {
                         User = user.ConvertToUserLite(),
                         IsAdmin = _userManager.IsInRoleAsync(user, nameof(UserRoles.Admin)).GetAwaiter().GetResult(),
+                        IsLocked = user.LockoutEnd > DateTime.Now
                     });
                 }
 
@@ -122,6 +123,40 @@ namespace AmazingKanban.Server.Controllers
             {
                 var user = await _userRepository.GetUserByid(userId);
                 await _userManager.RemoveFromRoleAsync(user, nameof(UserRoles.Admin));
+                return Ok(true);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
+        [HttpPost("admin/lock/{userId}")]
+        [Authorize(Roles = nameof(UserRoles.Admin))]
+        public async Task<IActionResult> LockUser(string userId)
+        {
+            try
+            {
+                var user = await _userRepository.GetUserByid(userId);
+                var lockoutEndDate = new DateTime(2999, 01, 01);
+                await _userManager.SetLockoutEnabledAsync(user, true);
+                await _userManager.SetLockoutEndDateAsync(user, lockoutEndDate);
+                return Ok(true);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
+        [HttpPost("admin/unlock/{userId}")]
+        [Authorize(Roles = nameof(UserRoles.Admin))]
+        public async Task<IActionResult> UnockUser(string userId)
+        {
+            try
+            {
+                var user = await _userRepository.GetUserByid(userId);
+                await _userRepository.Unlock(userId);
                 return Ok(true);
             }
             catch (Exception e)

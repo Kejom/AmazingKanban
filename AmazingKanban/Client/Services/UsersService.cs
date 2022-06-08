@@ -95,6 +95,36 @@ namespace AmazingKanban.Client.Services
             }
         }
 
+        public async Task<bool> Lock(string userId)
+        {
+            try
+            {
+                await _restClient.PostAsync<bool, string>($"api/users/admin/lock/{userId}", userId);
+                _toastService.ShowSuccess("User locked!");
+                return true;
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+                return false;
+            }
+        }
+
+        public async Task<bool> Unlock(string userId)
+        {
+            try
+            {
+                await _restClient.PostAsync<bool, string>($"api/users/admin/unlock/{userId}", userId);
+                _toastService.ShowSuccess("User unlocked!");
+                return true;
+            }
+            catch (Exception e)
+            {
+                _toastService.ShowError(e.Message);
+                return false;
+            }
+        }
+
         public async Task<IEnumerable<UserLite>>GetByBoardIdAndRole(int boardId, BoardRoles role, string filter)
         {
             var url = $"api/users/board/{boardId}/role/{role}";

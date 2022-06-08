@@ -11,5 +11,6 @@ namespace AmazingKanban.Shared.ViewModels
     {
         public UserLite User { get; set; }
         public bool IsAdmin { get; set; }
+        public bool IsLocked { get; set; }
     }
 }
