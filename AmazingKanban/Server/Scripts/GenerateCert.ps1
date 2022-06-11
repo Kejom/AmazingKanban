@@ -1,0 +1,1 @@
+New-SelfSignedCertificate -DnsName "blazortest" -CertStoreLocation "cert:\CurrentUser\My"
